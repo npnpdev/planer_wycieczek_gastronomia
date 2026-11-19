@@ -148,7 +148,7 @@ curl http://localhost:8000/api/gastronomy/places
 Zwraca szczegóły pojedynczego lokalu lub `404 Not Found`.
 
 ```bash
-curl http://localhost:8000/api/gastronomy/places/place-1
+curl http://localhost:8000/api/gastronomy/places/rest-01
 ```
 
 Błąd `404 Not Found`:
@@ -163,10 +163,10 @@ Błąd `404 Not Found`:
 Główny endpoint dla Planera. Łączy lokale pasujące do diety/budżetu z trasami z Transportu, odrzuca lokale bez połączenia (`available=false`), liczy koszt całkowity (`mealPriceGroszy + travelPriceGroszy`) i czas całkowity (`visitDurationMinutes + travelDurationMinutes`), filtruje po budżecie całkowitym i sortuje deterministycznie po cenie całkowitej, czasie całkowitym, `placeId` i `mealId`.
 
 **Parametry query:**
-- `fromLocationId` *(wymagany)* — np. `start` lub `attr-01`
-- `transportMode` *(wymagany)* — `WALK`, `PUBLIC_TRANSPORT`, `CAR`, `TAXI`, `BIKE`
-- `diet` *(opcjonalny)* — `STANDARD`, `VEGETARIAN`, `VEGAN`, `GLUTEN_FREE`
-- `maxBudgetGroszy` *(opcjonalny, `>= 0`)* — maksymalny łączny koszt posiłku + dojazdu
+- `fromLocationId` *(wymagany; alias: `from_location_id`)* — np. `ATR_001`, `ATR_002`, `ATR_004` lub `start`
+- `transportMode` *(wymagany; aliasy: `mode`, `transport_mode`)* — `WALK`, `PUBLIC_TRANSPORT`, `CAR`, `TAXI`, `BIKE`
+- `diet` *(opcjonalny)* — `STANDARD`, `VEGETARIAN`, `VEGAN`, `GLUTEN_FREE` (`STANDARD` zwraca wszystkie posiłki)
+- `maxBudgetGroszy` *(opcjonalny, `>= 0`; aliasy: `maxBudgetGrosze`, `max_budget_groszy`)* — maksymalny łączny koszt posiłku + dojazdu
 - `fromLat`, `fromLng` *(opcjonalne, podawane razem)* — współrzędne punktu startowego
 
 Przykładowe wywołanie `curl`:
@@ -187,24 +187,26 @@ Odpowiedź `200 OK`:
   "diet": "VEGAN",
   "proposals": [
     {
-      "placeId": "place-2",
-      "placeName": "Bar Mleczny Centrum",
+      "placeId": "rest-02",
+      "placeName": "Zielona Miska",
       "locationId": "rest-02",
       "coordinates": {
-        "lat": 52.2281,
-        "lng": 21.0122
+        "lat": 52.2295,
+        "lng": 21.0124
       },
-      "mealId": "meal-2a",
-      "mealName": "Krem z dyni i grzanki",
-      "diets": ["VEGETARIAN", "VEGAN"],
-      "mealPriceGroszy": 2200,
-      "visitDurationMinutes": 30,
+      "mealId": "zielona-bowl-falafel",
+      "mealName": "Bowl z falafelem",
+      "diets": ["VEGAN", "VEGETARIAN"],
+      "mealPriceGroszy": 3200,
+      "visitDurationMinutes": 45,
+      "openingFrom": "10:00",
+      "openingTo": "21:00",
       "transportMode": "CAR",
-      "travelDistanceMeters": 2100,
+      "travelDistanceMeters": null,
       "travelDurationMinutes": 7,
-      "travelPriceGroszy": 1445,
-      "totalPriceGroszy": 3645,
-      "totalDurationMinutes": 37,
+      "travelPriceGroszy": 1530,
+      "totalPriceGroszy": 4730,
+      "totalDurationMinutes": 52,
       "transportFromCache": false
     }
   ]
