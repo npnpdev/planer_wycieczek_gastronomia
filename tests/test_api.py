@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from fastapi.testclient import TestClient
 import pytest
 
@@ -643,4 +645,72 @@ def test_phase2_and_phase3_integrated_with_mock_transport(
             }
     finally:
         _IN_MEMORY_ROUTE_CACHE.clear()
+        get_settings.cache_clear()
+
+
+def test_full_stack_sqlite_db_route_service_and_api_end_to_end(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    db_file = tmp_path / "e2e.db"
+    monkeypatch.setenv("DB_PATH", str(db_file))
+    monkeypatch.setenv("USE_MOCK_TRANSPORT", "true")
+    get_settings.cache_clear()
+
+    try:
+        with TestClient(create_app(init_storage=True)) as client:
+            places_resp = client.get("/api/gastronomy/places")
+            assert places_resp.status_code == 200
+            places = places_resp.json()
+            assert [p["id"] for p in places] == [
+                "rest-01",
+                "rest-02",
+                "rest-03",
+                "rest-04",
+            ]
+            assert places[0]["name"] == "Bar Mleczny Familijny"
+
+            place_resp = client.get("/api/gastronomy/places/rest-02")
+            assert place_resp.status_code == 200
+            assert place_resp.json()["name"] == "Zielona Miska"
+
+            proposals_resp = client.get(
+                "/api/gastronomy/proposals",
+                params={
+                    "fromLocationId": "ATR_001",
+                    "mode": "PUBLIC_TRANSPORT",
+                    "diet": "VEGAN",
+                    "maxBudgetGrosze": 5000,
+                },
+            )
+            assert proposals_resp.status_code == 200
+            proposals = proposals_resp.json()["proposals"]
+            assert [item["mealId"] for item in proposals] == [
+                "zielona-bowl-falafel",
+                "zielona-curry",
+            ]
+            assert [item["totalPriceGroszy"] for item in proposals] == [4160, 4560]
+            assert [item["totalDurationMinutes"] for item in proposals] == [65, 65]
+
+            cached = GastronomyRepository(db_file).get_cached_route(
+                "start",
+                "rest-02",
+                TransportMode.PUBLIC_TRANSPORT,
+            )
+            assert cached is not None
+            assert cached.available is True
+            assert cached.duration_minutes == 11
+            assert cached.price_groszy == 480
+
+            empty_resp = client.get(
+                "/api/gastronomy/proposals",
+                params={
+                    "fromLocationId": "start",
+                    "mode": "WALK",
+                    "maxBudgetGrosze": 500,
+                },
+            )
+            assert empty_resp.status_code == 200
+            assert empty_resp.json()["proposals"] == []
+    finally:
         get_settings.cache_clear()
