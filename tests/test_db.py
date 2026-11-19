@@ -34,8 +34,6 @@ def test_seed_is_idempotent(conn):
 
 def test_seed_data_consistent(conn):
     for p in repo.get_places(conn):
-        assert p.location_id == p.id
-        assert 52.0 < p.lat < 52.4 and 20.8 < p.lng < 21.3
         assert repo.get_meals_for_place(conn, p.id), f"lokal {p.id} bez posiłków"
     for m, _ in ((mw.meal, mw.place) for mw in repo.find_meals(conn)):
         assert isinstance(m.price_groszy, int) and m.price_groszy > 0
@@ -44,7 +42,7 @@ def test_seed_data_consistent(conn):
 
 def test_get_place(conn):
     p = repo.get_place(conn, "rest-02")
-    assert p is not None and p.cuisine == "wegańska" and p.city == "Warszawa"
+    assert p is not None and p.cuisine == "wegańska"
     assert repo.get_place(conn, "nie-ma-takiego") is None
 
 

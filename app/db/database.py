@@ -14,12 +14,8 @@ DEFAULT_DB_PATH = "gastronomia.db"
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS places (
-    id            TEXT PRIMARY KEY,           -- "rest-NN", np. "rest-01" (jak w Transporcie)
-    location_id   TEXT NOT NULL UNIQUE,       -- wspólny locationId (ten sam co w Transporcie)
+    id            TEXT PRIMARY KEY,           -- = locationId w Transporcie, np. "rest-01"
     name          TEXT NOT NULL,
-    city          TEXT NOT NULL,
-    lat           REAL NOT NULL,
-    lng           REAL NOT NULL,
     cuisine       TEXT NOT NULL,
     description   TEXT NOT NULL DEFAULT '',
     opening_from  TEXT NOT NULL,              -- "HH:MM"

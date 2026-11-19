@@ -20,13 +20,11 @@ import sqlite3
 
 from app.db.database import get_connection, init_db
 
-CITY = "Warszawa"
 
 PLACES: list[dict] = [
     {
         "id": "rest-01",
         "name": "Bar Mleczny Familijny",
-        "lat": 52.2337, "lng": 21.0187,
         "cuisine": "polska",
         "description": "Klasyczny bar mleczny – tanio i szybko.",
         "opening_from": "08:00", "opening_to": "19:00",
@@ -34,7 +32,6 @@ PLACES: list[dict] = [
     {
         "id": "rest-02",
         "name": "Zielona Miska",
-        "lat": 52.2295, "lng": 21.0124,
         "cuisine": "wegańska",
         "description": "Kuchnia roślinna, bowle i zupy.",
         "opening_from": "10:00", "opening_to": "21:00",
@@ -42,7 +39,6 @@ PLACES: list[dict] = [
     {
         "id": "rest-03",
         "name": "Trattoria pod Łazienkami",
-        "lat": 52.2189, "lng": 21.0301,
         "cuisine": "włoska",
         "description": "Pizza z pieca i domowe makarony.",
         "opening_from": "11:00", "opening_to": "22:00",
@@ -51,7 +47,6 @@ PLACES: list[dict] = [
         # Droga i otwierana wieczorem – do pokazu "brak pasującego planu".
         "id": "rest-04",
         "name": "Restauracja Belweder",
-        "lat": 52.2143, "lng": 21.0264,
         "cuisine": "fine dining",
         "description": "Menu degustacyjne. Otwarte tylko wieczorem.",
         "opening_from": "17:00", "opening_to": "23:00",
@@ -92,14 +87,14 @@ def seed(conn: sqlite3.Connection) -> None:
     with conn:
         conn.executemany(
             """INSERT INTO places
-                   (id, location_id, name, city, lat, lng, cuisine, description, opening_from, opening_to)
-               VALUES (:id, :id, :name, :city, :lat, :lng, :cuisine, :description, :opening_from, :opening_to)
+                   (id, name, cuisine, description, opening_from, opening_to)
+               VALUES (:id, :name, :cuisine, :description, :opening_from, :opening_to)
                ON CONFLICT (id) DO UPDATE SET
-                   location_id = excluded.location_id, name = excluded.name, city = excluded.city,
-                   lat = excluded.lat, lng = excluded.lng, cuisine = excluded.cuisine,
+                   name = excluded.name,
+                   cuisine = excluded.cuisine,
                    description = excluded.description,
                    opening_from = excluded.opening_from, opening_to = excluded.opening_to""",
-            [{**p, "city": CITY} for p in PLACES],
+            PLACES,
         )
         conn.executemany(
             """INSERT INTO meals (id, place_id, name, diets, price_groszy, visit_minutes)

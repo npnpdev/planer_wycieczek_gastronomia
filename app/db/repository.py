@@ -15,11 +15,7 @@ from typing import Iterable
 @dataclass(frozen=True)
 class Place:
     id: str
-    location_id: str
     name: str
-    city: str
-    lat: float
-    lng: float
     cuisine: str
     description: str
     opening_from: str
@@ -58,11 +54,7 @@ class CachedRoute:
 def _place(row: sqlite3.Row, prefix: str = "") -> Place:
     return Place(
         id=row[f"{prefix}id"],
-        location_id=row[f"{prefix}location_id"],
         name=row[f"{prefix}name"],
-        city=row[f"{prefix}city"],
-        lat=row[f"{prefix}lat"],
-        lng=row[f"{prefix}lng"],
         cuisine=row[f"{prefix}cuisine"],
         description=row[f"{prefix}description"],
         opening_from=row[f"{prefix}opening_from"],
@@ -118,8 +110,8 @@ _MEAL_WITH_PLACE_SQL = """
 SELECT
     m.id AS m_id, m.place_id AS m_place_id, m.name AS m_name, m.diets AS m_diets,
     m.price_groszy AS m_price_groszy, m.visit_minutes AS m_visit_minutes,
-    p.id AS p_id, p.location_id AS p_location_id, p.name AS p_name, p.city AS p_city,
-    p.lat AS p_lat, p.lng AS p_lng, p.cuisine AS p_cuisine, p.description AS p_description,
+    p.id AS p_id, p.name AS p_name,
+    p.cuisine AS p_cuisine, p.description AS p_description,
     p.opening_from AS p_opening_from, p.opening_to AS p_opening_to
 FROM meals m
 JOIN places p ON p.id = m.place_id
