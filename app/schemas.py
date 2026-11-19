@@ -28,6 +28,7 @@ class TransportMode(str, Enum):
 
     WALK = "WALK"
     PUBLIC_TRANSPORT = "PUBLIC_TRANSPORT"
+    CAR = "CAR"
     TAXI = "TAXI"
     BIKE = "BIKE"
 

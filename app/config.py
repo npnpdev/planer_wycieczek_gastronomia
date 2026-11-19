@@ -16,9 +16,9 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8000
     db_path: str = "gastronomia.db"
-    transport_base_url: str = "http://127.0.0.1:8080"
-    transport_routes_path: str = "/api/transport/routes"
-    transport_timeout_ms: int = 5000
+    transport_base_url: str = "http://172.20.147.17:8083"
+    transport_routes_path: str = "/api/v1/routes"
+    transport_timeout_ms: int = 2000
     use_mock_transport: bool = True
     use_cache_fallback_on_transport_error: bool = True
     retry_after_seconds: int = 60
