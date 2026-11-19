@@ -1,7 +1,21 @@
-__pycache__/
-*.pyc
+# Virtual environments
 .venv/
+venv/
+
+# Python caches
+__pycache__/
+*.py[cod]
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# SQLite databases
 *.db
+*.db-shm
+*.db-wal
+
+# Environment & IDE
 .env
+.vscode/
 .idea/
+.DS_Store
