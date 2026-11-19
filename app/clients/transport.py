@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 MODE_MAP: dict[TransportMode, str] = {
     TransportMode.WALK: "WALK",
     TransportMode.PUBLIC_TRANSPORT: "PUBLIC_TRANSPORT",
+    TransportMode.CAR: "CAR",
     TransportMode.TAXI: "CAR",
 }
 

@@ -62,7 +62,7 @@ Po starcie:
 - Dokumentacja Swagger UI: `http://<TWOJE_IP>:8000/docs`
 - Healthcheck: `http://<TWOJE_IP>:8000/health`
 
-> **Tryb tymczasowy przed merge'em gałęzi DB i Transport:** jeśli `feat/db-and-seed` lub `feat/transport-client` nie są jeszcze scalone, serwis automatycznie startuje na wbudowanych 4 lokalach (`rest-01`–`rest-04`) i tabeli tras z `docs/KONTRAKT_API.md`, więc można go od razu wystawić w sieci LAN dla Planera. Po scaleniu tych gałęzi aplikacja automatycznie przełącza się na SQLite i `RouteService`.
+> **Stan integracji (Faza 2 + Faza 3 + tymczasowe lokale):** gałąź `feat/transport-client` jest już zmergowana, więc `USE_MOCK_TRANSPORT=false` łączy się bezpośrednio z Transportem (`http://172.20.147.17:8083/api/v1/routes`), a trasy zapisują się w pamięciowym cache do czasu scalenia SQLite (`feat/db-and-seed`). Tymczasowe lokale w pamięci to `rest-01` (*Bistro Zielone*), `rest-02` (*Pierogarnia Stary Rynek*), `rest-03` (*Trattoria Sole*) i `rest-04` (*Karczma pod Lasem*). Endpoint `/api/gastronomy/proposals` akceptuje zarówno `transportMode` / `maxBudgetGroszy`, jak i aliasy `mode` / `maxBudgetGrosze`.
 
 ## Testy
 

@@ -100,7 +100,8 @@ def _contract_lookup(a: str, b: str, mode: TransportMode):
         return None  # Transport zna tylko odcinki start <-> X
     other = b if a == START_LOCATION_ID else a
     row = CONTRACT_TABLE[other]
-    entry = row.get(mode)
+    lookup_mode = TransportMode.TAXI if mode == TransportMode.CAR else mode
+    entry = row.get(lookup_mode)
     if entry is None:
         return None
     return entry[0], entry[1], _contract_distance(row)
@@ -139,7 +140,7 @@ def _estimate(distance: int, mode: TransportMode) -> tuple[int, int] | None:
         return math.ceil(distance / WALK_METERS_PER_MIN), 0
     if mode == TransportMode.PUBLIC_TRANSPORT:
         return PUBLIC_WAIT_MIN + math.ceil(distance / PUBLIC_METERS_PER_MIN), PUBLIC_TICKET_GROSZY
-    if mode != TransportMode.TAXI:
+    if mode not in (TransportMode.TAXI, TransportMode.CAR):
         return None
     duration = TAXI_PICKUP_MIN + math.ceil(distance / TAXI_METERS_PER_MIN)
     price = TAXI_BASE_GROSZY + math.ceil(distance * TAXI_GROSZY_PER_KM / 1000)

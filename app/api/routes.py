@@ -2,8 +2,7 @@ from typing import TypeVar
 
 from fastapi import APIRouter, Depends, Query
 
-from app.clients.mock_transport import MockTransportClient
-from app.clients.transport import HttpTransportClient, TransportClient
+from app.clients.transport import TransportClient, create_transport_client
 from app.config import Settings, get_settings
 from app.db.repository import GastronomyRepository
 from app.exceptions import InvalidRequestError, PlaceNotFoundError
@@ -79,119 +78,109 @@ _FALLBACK_LEGS_FROM_START: dict[str, dict[TransportMode, tuple[int, int] | None]
 
 
 def _build_fallback_places() -> list[Place]:
-    """Zwraca wbudowane lokale startowe zgodne z ID z docs/KONTRAKT_API.md."""
+    """Zwraca wbudowane lokale startowe zgodne z docs/KONTRAKT_API_GASTRONOMIA.md."""
     return [
         Place(
             id="rest-01",
-            name="Bar Mleczny Śródmieście",
-            location_id="rest-01",
-            city="Warszawa",
-            address="ul. Marszałkowska 84",
-            coordinates=Coordinates(lat=52.2281, lng=21.0122),
-            visit_duration_minutes=30,
-            meals=[
-                Meal(
-                    id="meal-rest-01-a",
-                    place_id="rest-01",
-                    name="Pierogi ruskie",
-                    price_groszy=2200,
-                    diets=[DietType.STANDARD, DietType.VEGETARIAN],
-                ),
-                Meal(
-                    id="meal-rest-01-b",
-                    place_id="rest-01",
-                    name="Krem z dyni z pestkami",
-                    price_groszy=1800,
-                    diets=[
-                        DietType.STANDARD,
-                        DietType.VEGETARIAN,
-                        DietType.VEGAN,
-                        DietType.GLUTEN_FREE,
-                    ],
-                ),
-            ],
-        ),
-        Place(
-            id="rest-02",
             name="Bistro Zielone",
-            location_id="rest-02",
+            location_id="rest-01",
             city="Warszawa",
             address="ul. Mokotowska 17",
             coordinates=Coordinates(lat=52.2245, lng=21.0211),
             visit_duration_minutes=45,
             meals=[
                 Meal(
-                    id="meal-rest-02-a",
-                    place_id="rest-02",
-                    name="Bowl z falafelem i hummusem",
-                    price_groszy=3200,
-                    diets=[DietType.STANDARD, DietType.VEGETARIAN, DietType.VEGAN],
+                    id="meal-01",
+                    place_id="rest-01",
+                    name="Krem z dyni",
+                    price_groszy=1800,
+                    diets=[
+                        DietType.VEGETARIAN,
+                        DietType.VEGAN,
+                        DietType.GLUTEN_FREE,
+                    ],
                 ),
                 Meal(
-                    id="meal-rest-02-b",
+                    id="meal-02",
+                    place_id="rest-01",
+                    name="Burger wegański",
+                    price_groszy=3200,
+                    diets=[DietType.VEGETARIAN, DietType.VEGAN],
+                ),
+            ],
+        ),
+        Place(
+            id="rest-02",
+            name="Pierogarnia Stary Rynek",
+            location_id="rest-02",
+            city="Warszawa",
+            address="ul. Świętojańska 11",
+            coordinates=Coordinates(lat=52.2485, lng=21.0135),
+            visit_duration_minutes=50,
+            meals=[
+                Meal(
+                    id="meal-03",
                     place_id="rest-02",
-                    name="Kurczak grillowany z kaszą gryczaną",
-                    price_groszy=3600,
-                    diets=[DietType.STANDARD, DietType.GLUTEN_FREE],
+                    name="Pierogi ruskie",
+                    price_groszy=2600,
+                    diets=[DietType.VEGETARIAN],
+                ),
+                Meal(
+                    id="meal-04",
+                    place_id="rest-02",
+                    name="Pierogi z mięsem",
+                    price_groszy=2800,
+                    diets=[DietType.STANDARD],
                 ),
             ],
         ),
         Place(
             id="rest-03",
-            name="Pierogarnia Stare Miasto",
+            name="Trattoria Sole",
             location_id="rest-03",
             city="Warszawa",
-            address="ul. Świętojańska 11",
-            coordinates=Coordinates(lat=52.2485, lng=21.0135),
-            visit_duration_minutes=40,
+            address="ul. Marszałkowska 84",
+            coordinates=Coordinates(lat=52.2281, lng=21.0122),
+            visit_duration_minutes=60,
             meals=[
                 Meal(
-                    id="meal-rest-03-a",
+                    id="meal-05",
                     place_id="rest-03",
-                    name="Żurek staropolski z jajkiem",
-                    price_groszy=2600,
-                    diets=[DietType.STANDARD],
+                    name="Pizza margherita",
+                    price_groszy=3400,
+                    diets=[DietType.VEGETARIAN],
                 ),
                 Meal(
-                    id="meal-rest-03-b",
+                    id="meal-06",
                     place_id="rest-03",
-                    name="Sałatka z pieczonym burakiem i kozim serem",
-                    price_groszy=2900,
-                    diets=[
-                        DietType.STANDARD,
-                        DietType.VEGETARIAN,
-                        DietType.GLUTEN_FREE,
-                    ],
+                    name="Risotto z grzybami",
+                    price_groszy=3900,
+                    diets=[DietType.VEGETARIAN, DietType.GLUTEN_FREE],
                 ),
             ],
         ),
         Place(
             id="rest-04",
-            name="Karczma Nad Wisłą",
+            name="Karczma pod Lasem",
             location_id="rest-04",
             city="Warszawa",
             address="Wybrzeże Kościuszkowskie 25",
             coordinates=Coordinates(lat=52.2410, lng=21.0315),
-            visit_duration_minutes=50,
+            visit_duration_minutes=75,
             meals=[
                 Meal(
-                    id="meal-rest-04-a",
+                    id="meal-07",
                     place_id="rest-04",
-                    name="Schabowy z ziemniakami i kapustą",
-                    price_groszy=4200,
+                    name="Żurek",
+                    price_groszy=2200,
                     diets=[DietType.STANDARD],
                 ),
                 Meal(
-                    id="meal-rest-04-b",
+                    id="meal-08",
                     place_id="rest-04",
-                    name="Leczo warzywne z tofu",
-                    price_groszy=3400,
-                    diets=[
-                        DietType.STANDARD,
-                        DietType.VEGETARIAN,
-                        DietType.VEGAN,
-                        DietType.GLUTEN_FREE,
-                    ],
+                    name="Placki ziemniaczane",
+                    price_groszy=2400,
+                    diets=[DietType.VEGETARIAN],
                 ),
             ],
         ),
@@ -275,13 +264,16 @@ def _build_fallback_routes(
     return routes
 
 
+_IN_MEMORY_ROUTE_CACHE: dict[tuple[str, str, TransportMode], TransportRoute] = {}
+
+
 class _FallbackRepositoryWrapper:
     """Wrapper delegujący do SQLite i przełączający na mock w pamięci przed merge'em Agenta 1."""
 
     def __init__(self, primary: GastronomyRepository) -> None:
         self._primary = primary
         self._fallback_places = _build_fallback_places()
-        self._route_cache: dict[tuple[str, str, TransportMode], TransportRoute] = {}
+        self._route_cache = _IN_MEMORY_ROUTE_CACHE
 
     def get_all_places(self) -> list[Place]:
         try:
@@ -372,6 +364,37 @@ class _FallbackRouteServiceWrapper:
     def __init__(self, primary: RouteService) -> None:
         self._primary = primary
 
+    async def get_routes(
+        self,
+        from_location_id: str,
+        to_location_ids: list[str],
+        transport_mode: TransportMode,
+        coordinates: dict[str, Coordinates] | None = None,
+    ) -> dict[str, TransportRoute]:
+        try:
+            return await self._primary.get_routes(
+                from_location_id=from_location_id,
+                to_location_ids=to_location_ids,
+                transport_mode=transport_mode,
+                coordinates=coordinates,
+            )
+        except NotImplementedError:
+            target_places = [
+                Place(
+                    id=to_id,
+                    name=to_id,
+                    location_id=to_id,
+                    city="",
+                    coordinates=(coordinates or {}).get(
+                        to_id, Coordinates(lat=0.0, lng=0.0)
+                    ),
+                    visit_duration_minutes=1,
+                    meals=[],
+                )
+                for to_id in to_location_ids
+            ]
+            return _build_fallback_routes(from_location_id, target_places, transport_mode)
+
     async def get_routes_from_attraction(
         self,
         from_location_id: str,
@@ -399,13 +422,7 @@ def get_repository(
 
 def get_transport_client(settings: Settings = Depends(get_settings)) -> TransportClient:
     """Dostarcza klienta HTTP Transportu lub deterministyczny mock zależnie od konfiguracji."""
-    if settings.use_mock_transport:
-        return MockTransportClient()
-    return HttpTransportClient(
-        base_url=settings.transport_base_url,
-        routes_path=settings.transport_routes_path,
-        timeout_seconds=settings.transport_timeout_seconds,
-    )
+    return create_transport_client(settings)
 
 
 def get_route_service(
@@ -422,20 +439,18 @@ def get_route_service(
     return _FallbackRouteServiceWrapper(primary)
 
 
-def _resolve_alias(
-    camel_value: T | None,
-    snake_value: T | None,
-    camel_name: str,
-    snake_name: str,
-) -> T | None:
-    """Rozwiązuje parę aliasów camelCase/snake_case i wykrywa sprzeczne wartości."""
-    if camel_value is not None and snake_value is not None:
-        if camel_value != snake_value:
+def _resolve_aliases(values: list[tuple[str, T | None]]) -> T | None:
+    """Rozwiązuje grupę aliasów parametrów query i wykrywa sprzeczne wartości."""
+    present = [(name, val) for name, val in values if val is not None]
+    if not present:
+        return None
+    first_name, first_val = present[0]
+    for other_name, other_val in present[1:]:
+        if other_val != first_val:
             raise InvalidRequestError(
-                f"Conflicting query parameters '{camel_name}' and '{snake_name}'."
+                f"Conflicting query parameters '{first_name}' and '{other_name}'."
             )
-        return camel_value
-    return camel_value if camel_value is not None else snake_value
+    return first_val
 
 
 def _parse_transport_mode(raw: str | None) -> TransportMode:
@@ -527,6 +542,110 @@ def list_diets() -> list[DietType]:
     return list(DietType)
 
 
+async def _fetch_routes_for_places(
+    route_service: RouteService | _FallbackRouteServiceWrapper,
+    from_location_id: str,
+    places: list[Place],
+    transport_mode: TransportMode,
+    from_coordinates: Coordinates | None,
+) -> dict[str, TransportRoute]:
+    """Pobiera trasy bezpośrednio, a gdy Transport zwraca tylko odcinki przez 'start', składa dwa odcinki."""
+    routes = await route_service.get_routes_from_attraction(
+        from_location_id=from_location_id,
+        places=places,
+        transport_mode=transport_mode,
+        from_coordinates=from_coordinates,
+    )
+    if (
+        from_location_id == "start"
+        or any(route.available for route in routes.values())
+        or not hasattr(route_service, "get_routes")
+    ):
+        return routes
+
+    coordinates: dict[str, Coordinates] = {
+        place.location_id: place.coordinates for place in places
+    }
+    if from_coordinates is not None:
+        coordinates[from_location_id] = from_coordinates
+
+    to_start = await route_service.get_routes(
+        from_location_id,
+        ["start"],
+        transport_mode,
+        coordinates,
+    )
+    leg_to_start = to_start.get("start")
+    if (
+        leg_to_start is None
+        or not leg_to_start.available
+        or leg_to_start.duration_minutes is None
+        or leg_to_start.price_groszy is None
+    ):
+        return routes
+
+    from_start = await route_service.get_routes(
+        "start",
+        [place.location_id for place in places],
+        transport_mode,
+        coordinates,
+    )
+
+    combined: dict[str, TransportRoute] = {}
+    for place in places:
+        to_id = place.location_id
+        if to_id == from_location_id:
+            combined[to_id] = TransportRoute(
+                from_location_id=from_location_id,
+                to_location_id=to_id,
+                transport_mode=transport_mode,
+                available=True,
+                distance_meters=0,
+                duration_minutes=0,
+                price_groszy=0,
+                from_cache=False,
+            )
+            continue
+
+        leg_from_start = from_start.get(to_id)
+        if (
+            leg_from_start is None
+            or not leg_from_start.available
+            or leg_from_start.duration_minutes is None
+            or leg_from_start.price_groszy is None
+        ):
+            combined[to_id] = TransportRoute(
+                from_location_id=from_location_id,
+                to_location_id=to_id,
+                transport_mode=transport_mode,
+                available=False,
+                from_cache=bool(
+                    leg_to_start.from_cache
+                    or (leg_from_start.from_cache if leg_from_start else False)
+                ),
+            )
+            continue
+
+        distance_meters = (
+            leg_to_start.distance_meters + leg_from_start.distance_meters
+            if leg_to_start.distance_meters is not None
+            and leg_from_start.distance_meters is not None
+            else None
+        )
+        combined[to_id] = TransportRoute(
+            from_location_id=from_location_id,
+            to_location_id=to_id,
+            transport_mode=transport_mode,
+            available=True,
+            distance_meters=distance_meters,
+            duration_minutes=leg_to_start.duration_minutes + leg_from_start.duration_minutes,
+            price_groszy=leg_to_start.price_groszy + leg_from_start.price_groszy,
+            from_cache=leg_to_start.from_cache or leg_from_start.from_cache,
+        )
+
+    return combined
+
+
 @router.get(
     "/api/gastronomy/proposals",
     response_model=ProposalsResponse,
@@ -535,9 +654,11 @@ def list_diets() -> list[DietType]:
 async def get_proposals(
     fromLocationId: str | None = Query(default=None),
     from_location_id: str | None = Query(default=None),
+    mode: str | None = Query(default=None),
     transportMode: str | None = Query(default=None),
     transport_mode: str | None = Query(default=None),
     diet: str | None = Query(default=None),
+    maxBudgetGrosze: int | None = Query(default=None),
     maxBudgetGroszy: int | None = Query(default=None),
     max_budget_groszy: int | None = Query(default=None),
     fromLat: float | None = Query(default=None),
@@ -548,40 +669,40 @@ async def get_proposals(
     route_service: RouteService = Depends(get_route_service),
 ) -> ProposalsResponse:
     """Zwraca posortowane propozycje posiłków z kosztem i czasem dojazdu od wskazanej lokalizacji."""
-    raw_from_location = _resolve_alias(
-        fromLocationId,
-        from_location_id,
-        "fromLocationId",
-        "from_location_id",
+    raw_from_location = _resolve_aliases(
+        [("fromLocationId", fromLocationId), ("from_location_id", from_location_id)]
     )
     if raw_from_location is None or not raw_from_location.strip():
         raise InvalidRequestError("Missing required query parameter: fromLocationId.")
     resolved_from_location_id = raw_from_location.strip()
 
-    raw_transport_mode = _resolve_alias(
-        transportMode,
-        transport_mode,
-        "transportMode",
-        "transport_mode",
+    raw_transport_mode = _resolve_aliases(
+        [
+            ("mode", mode),
+            ("transportMode", transportMode),
+            ("transport_mode", transport_mode),
+        ]
     )
     resolved_transport_mode = _parse_transport_mode(raw_transport_mode)
     resolved_diet = _parse_diet(diet)
+    effective_diet = None if resolved_diet == DietType.STANDARD else resolved_diet
 
-    resolved_max_budget = _resolve_alias(
-        maxBudgetGroszy,
-        max_budget_groszy,
-        "maxBudgetGroszy",
-        "max_budget_groszy",
+    resolved_max_budget = _resolve_aliases(
+        [
+            ("maxBudgetGrosze", maxBudgetGrosze),
+            ("maxBudgetGroszy", maxBudgetGroszy),
+            ("max_budget_groszy", max_budget_groszy),
+        ]
     )
     if resolved_max_budget is not None and resolved_max_budget < 0:
         raise InvalidRequestError("Parameter 'maxBudgetGroszy' must be >= 0.")
 
-    resolved_from_lat = _resolve_alias(fromLat, from_lat, "fromLat", "from_lat")
-    resolved_from_lng = _resolve_alias(fromLng, from_lng, "fromLng", "from_lng")
+    resolved_from_lat = _resolve_aliases([("fromLat", fromLat), ("from_lat", from_lat)])
+    resolved_from_lng = _resolve_aliases([("fromLng", fromLng), ("from_lng", from_lng)])
     from_coordinates = _parse_coordinates(resolved_from_lat, resolved_from_lng)
 
     places = repository.find_places_with_meals(
-        diet=resolved_diet,
+        diet=effective_diet,
         max_meal_price_groszy=resolved_max_budget,
     )
     if not places:
@@ -592,7 +713,8 @@ async def get_proposals(
             proposals=[],
         )
 
-    routes_by_location = await route_service.get_routes_from_attraction(
+    routes_by_location = await _fetch_routes_for_places(
+        route_service=route_service,
         from_location_id=resolved_from_location_id,
         places=places,
         transport_mode=resolved_transport_mode,
@@ -611,7 +733,7 @@ async def get_proposals(
             continue
 
         for meal in place.meals:
-            if resolved_diet is not None and resolved_diet not in meal.diets:
+            if effective_diet is not None and effective_diet not in meal.diets:
                 continue
 
             total_price_groszy = meal.price_groszy + route.price_groszy
