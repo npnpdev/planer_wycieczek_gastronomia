@@ -59,6 +59,8 @@ class Place(CamelModel):
     address: str | None = None
     coordinates: Coordinates
     visit_duration_minutes: int = Field(gt=0)
+    opening_from: str | None = Field(default=None, pattern=r"^\d{2}:\d{2}$")
+    opening_to: str | None = Field(default=None, pattern=r"^\d{2}:\d{2}$")
     meals: list[Meal] = Field(default_factory=list)
 
 
@@ -110,6 +112,8 @@ class MealProposal(CamelModel):
     diets: list[DietType]
     meal_price_groszy: int = Field(ge=0)
     visit_duration_minutes: int = Field(gt=0)
+    opening_from: str | None = Field(default=None, pattern=r"^\d{2}:\d{2}$")
+    opening_to: str | None = Field(default=None, pattern=r"^\d{2}:\d{2}$")
     transport_mode: TransportMode
     travel_distance_meters: int | None = Field(default=None, ge=0)
     travel_duration_minutes: int = Field(ge=0)
