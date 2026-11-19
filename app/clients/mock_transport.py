@@ -21,6 +21,9 @@ START_LOCATION_ID = "start"
 # (minuty, grosze) lub None dla NO_CONNECTION; tryb TAXI odpowiada `CAR` w Transporcie.
 _W, _P, _T = TransportMode.WALK, TransportMode.PUBLIC_TRANSPORT, TransportMode.TAXI
 CONTRACT_TABLE: dict[str, dict[TransportMode, tuple[int, int] | None]] = {
+    "ATR_001": {_W: (15, 0), _P: (9, 480), _T: (6, 1320)},
+    "ATR_002": {_W: (21, 0), _P: (11, 480), _T: (7, 1495)},
+    "ATR_004": {_W: (29, 0), _P: (13, 480), _T: (8, 1740)},
     "attr-01": {_W: (15, 0), _P: (9, 480), _T: (6, 1320)},
     "attr-02": {_W: (21, 0), _P: (11, 480), _T: (7, 1495)},
     "attr-03": {_W: (28, 0), _P: (12, 480), _T: (8, 1705)},

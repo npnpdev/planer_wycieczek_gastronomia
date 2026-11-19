@@ -24,6 +24,21 @@ T = TypeVar("T")
 router = APIRouter()
 
 _FALLBACK_LEGS_FROM_START: dict[str, dict[TransportMode, tuple[int, int] | None]] = {
+    "ATR_001": {
+        TransportMode.WALK: (15, 0),
+        TransportMode.PUBLIC_TRANSPORT: (9, 480),
+        TransportMode.CAR: (6, 1320),
+    },
+    "ATR_002": {
+        TransportMode.WALK: (21, 0),
+        TransportMode.PUBLIC_TRANSPORT: (11, 480),
+        TransportMode.CAR: (7, 1495),
+    },
+    "ATR_004": {
+        TransportMode.WALK: (29, 0),
+        TransportMode.PUBLIC_TRANSPORT: (13, 480),
+        TransportMode.CAR: (8, 1740),
+    },
     "attr-01": {
         TransportMode.WALK: (15, 0),
         TransportMode.PUBLIC_TRANSPORT: (9, 480),

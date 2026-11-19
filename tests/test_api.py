@@ -587,6 +587,28 @@ def test_phase2_and_phase3_integrated_with_mock_transport(
             ]
             assert _IN_MEMORY_ROUTE_CACHE
 
+            atr_resp = client.get(
+                "/api/gastronomy/proposals",
+                params={
+                    "fromLocationId": "ATR_002",
+                    "mode": "PUBLIC_TRANSPORT",
+                    "diet": "VEGETARIAN",
+                    "maxBudgetGrosze": 3600,
+                },
+            )
+            assert atr_resp.status_code == 200
+            atr_proposals = atr_resp.json()["proposals"]
+            assert [item["mealId"] for item in atr_proposals] == [
+                "meal-01",
+                "meal-08",
+                "meal-03",
+            ]
+            assert [item["totalPriceGroszy"] for item in atr_proposals] == [
+                2760,
+                3360,
+                3560,
+            ]
+
             car_resp = client.get(
                 "/api/gastronomy/proposals",
                 params={"fromLocationId": "start", "mode": "CAR", "diet": "VEGAN"},
