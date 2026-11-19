@@ -51,6 +51,8 @@ class GastronomyRepository:
             address=row["address"],
             coordinates=Coordinates(lat=row["lat"], lng=row["lng"]),
             visit_duration_minutes=row["visit_duration_minutes"],
+            opening_from=row["opening_from"],
+            opening_to=row["opening_to"],
             meals=meals,
         )
 

@@ -767,6 +767,8 @@ async def get_proposals(
                     diets=meal.diets,
                     meal_price_groszy=meal.price_groszy,
                     visit_duration_minutes=place.visit_duration_minutes,
+                    opening_from=place.opening_from,
+                    opening_to=place.opening_to,
                     transport_mode=resolved_transport_mode,
                     travel_distance_meters=route.distance_meters,
                     travel_duration_minutes=route.duration_minutes,

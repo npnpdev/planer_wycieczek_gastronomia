@@ -669,6 +669,10 @@ def test_full_stack_sqlite_db_route_service_and_api_end_to_end(
                 "rest-04",
             ]
             assert places[0]["name"] == "Bar Mleczny Familijny"
+            assert places[0]["openingFrom"] == "08:00"
+            assert places[0]["openingTo"] == "19:00"
+            assert places[3]["openingFrom"] == "17:00"
+            assert places[3]["openingTo"] == "23:00"
 
             place_resp = client.get("/api/gastronomy/places/rest-02")
             assert place_resp.status_code == 200
@@ -691,6 +695,8 @@ def test_full_stack_sqlite_db_route_service_and_api_end_to_end(
             ]
             assert [item["totalPriceGroszy"] for item in proposals] == [4160, 4560]
             assert [item["totalDurationMinutes"] for item in proposals] == [65, 65]
+            assert proposals[0]["openingFrom"] == "10:00"
+            assert proposals[0]["openingTo"] == "21:00"
 
             cached = GastronomyRepository(db_file).get_cached_route(
                 "start",
