@@ -52,6 +52,41 @@ RETRY_AFTER_SECONDS=60
 - Przed podłączeniem żywego serwisu Transport zostaw `USE_MOCK_TRANSPORT=true`.
 - Do pełnej integracji w sieci LAN ustaw `USE_MOCK_TRANSPORT=false` i sprawdź `TRANSPORT_BASE_URL`.
 
+## Uruchomienie w Dockerze (bez instalacji Pythona)
+
+### Docker Compose (zalecane)
+
+```bash
+docker compose up --build
+```
+
+- Domyślnie działa z mockiem Transportu (`USE_MOCK_TRANSPORT=true`).
+- Aby połączyć się z żywym serwisem Transport, ustaw `USE_MOCK_TRANSPORT=false` w `.env` lub w zmiennych środowiskowych przed uruchomieniem:
+
+```powershell
+$env:USE_MOCK_TRANSPORT="false"
+docker compose up --build
+```
+
+### Bezpośrednio przez `docker build` / `docker run`
+
+```bash
+docker build -t planer-wycieczek-gastronomia .
+docker run --rm -p 8000:8000 planer-wycieczek-gastronomia
+```
+
+Z prawdziwym Transportem:
+
+```bash
+docker run --rm -p 8000:8000 -e USE_MOCK_TRANSPORT=false -e TRANSPORT_BASE_URL=http://172.20.147.17:8083 planer-wycieczek-gastronomia
+```
+
+Uruchomienie pełnych testów w kontenerze:
+
+```bash
+docker run --rm planer-wycieczek-gastronomia pytest -v
+```
+
 ## Uruchomienie w sieci lokalnej (LAN)
 
 ```bash

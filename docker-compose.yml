@@ -1,0 +1,23 @@
+services:
+  gastronomia:
+    build: .
+    image: planer-wycieczek-gastronomia:latest
+    container_name: planer-gastronomia
+    ports:
+      - "8000:8000"
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "8000"
+      DB_PATH: "/data/gastronomia.db"
+      TRANSPORT_BASE_URL: "${TRANSPORT_BASE_URL:-http://172.20.147.17:8083}"
+      TRANSPORT_ROUTES_PATH: "${TRANSPORT_ROUTES_PATH:-/api/v1/routes}"
+      TRANSPORT_TIMEOUT_MS: "${TRANSPORT_TIMEOUT_MS:-2000}"
+      USE_MOCK_TRANSPORT: "${USE_MOCK_TRANSPORT:-true}"
+      USE_CACHE_FALLBACK_ON_TRANSPORT_ERROR: "${USE_CACHE_FALLBACK_ON_TRANSPORT_ERROR:-true}"
+      RETRY_AFTER_SECONDS: "${RETRY_AFTER_SECONDS:-60}"
+    volumes:
+      - gastronomia_data:/data
+    restart: unless-stopped
+
+volumes:
+  gastronomia_data:
