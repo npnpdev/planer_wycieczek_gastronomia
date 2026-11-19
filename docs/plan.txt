@@ -1,0 +1,28 @@
+Agent 1 — Baza SQLite, Seed i Repozytorium
+Gałąź: feat/db-and-seed
+Pliki:
+app/db/database.py — połączenie z SQLite, tworzenie 3 tabel przy starcie (places, meals, transport_cache)
+app/db/repository.py — funkcje: pobranie lokali, filtrowanie posiłków po diecie i max cenie (w groszach), get_cached_route(...), upsert_cached_routes(...)
+app/db/seed.py — idempotentny seed lokali i posiłków (różne diety, różne ceny w groszach, czasy wizyty w minutach, spójne locationId + lat/lng)
+tests/test_db.py — testy na SQLite :memory:
+Cel: Gotowa, lekka baza działająca lokalnie bez konfiguracji i gotowy zestaw danych pod pokaz.
+Agent 2 — Klient HTTP Transportu, Cache/Fallback i Mock
+Gałąź: feat/transport-client
+Pliki:
+app/clients/transport.py — asynchroniczny klient httpx.AsyncClient do serwisu Transport (po IP z .env, z timeoutem); rozróżnia brak połączenia (available=False) od awarii/timeoutu (TransportUnavailableError)
+app/clients/mock_transport.py — deterministyczny mock (włączany przez USE_MOCK_TRANSPORT=true), żebyście nie byli zablokowani przed startem serwisu Transport
+app/services/route_service.py — orkiestracja: najpierw strzał HTTP do Transportu → zapis wyniku w transport_cache (SQLite); w razie awarii/timeoutu Transportu → fallback do cache'a albo podniesienie błędu pod 503
+tests/test_transport_client.py — testy na httpx.MockTransport (200 OK, brak połączenia, timeout, 503, fallback do cache)
+Cel: Jedna czysta funkcja get_routes(from_location, to_locations, mode). Jak Transport w trakcie hackathonu zmieni nazwę jakiegoś pola w JSON, poprawiacie tylko 1 plik (app/clients/transport.py).
+Agent 3 — FastAPI Endpoints, Logika Propozycji i Dokumentacja
+Gałąź: feat/api-and-integration
+Pliki:
+app/main.py — start FastAPI, lifespan (init DB + seed), CORS (dla Planera/Reacta), obsługa błędów 400 / 404 / 503 (z Retry-After)
+app/api/routes.py — endpointy:
+GET /health
+GET /api/gastronomy/places oraz GET /api/gastronomy/places/{place_id}
+GET /api/gastronomy/diets
+GET /api/gastronomy/proposals (główny dla Planera) — walidacja parametrów, pobranie pasujących posiłków z repo + tras z route_service, odfiltrowanie lokali bez dojazdu, policzenie łącznego kosztu (posiłek + dojazd w groszach) i łącznego czasu (wizyta + dojazd w minutach)
+tests/test_api.py — testy przez TestClient (happy path, przekroczony budżet / brak dopasowań, złe parametry 400, awaria Transportu 503)
+README.md — komenda startu po LAN (uvicorn app.main:app --host 0.0.0.0 --port 8000) i przykładowe curl/JSON-y dla Planera
+Cel: Działające API ze Swaggerem pod /docs, gotowe do wpięcia przez Planer.

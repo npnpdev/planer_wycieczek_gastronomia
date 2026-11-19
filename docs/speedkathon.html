@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="pl"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Speedkathon PSSO – planowanie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<link href="speedkathon_files/css2_Jy74.css" rel="stylesheet">
+<style>
+/* Plan: projector-friendly single light theme; 16:9 stage scaled to the window;
+   group 1 = teal (trip planner), group 2 = ochre (tournament); service boxes drawn as SVG. */
+:root {
+  --paper: #f5f6f3;
+  --ink: #18212b;
+  --muted: #586370;
+  --line: #d3d8d1;
+  --g1: #0d6b6b;
+  --g1-soft: #dcecea;
+  --g2: #9a5600;
+  --g2-soft: #f3e6d3;
+  --accent: #0d6b6b;
+  --accent-soft: #dcecea;
+  --display: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+  --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: #e4e7e2;
+  color: var(--ink);
+  font-family: var(--body);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.stage {
+  width: min(100vw, calc(100vh * 16 / 9));
+  aspect-ratio: 16 / 9;
+  container-type: inline-size;
+  position: relative;
+  background: var(--paper);
+  box-shadow: 0 0 0 1px var(--line);
+}
+.slide {
+  position: absolute; inset: 0;
+  padding: 4.2cqw 5.5cqw 5.2cqw;
+  display: none;
+  flex-direction: column;
+  gap: 2cqw;
+  font-size: 1.75cqw;
+  line-height: 1.4;
+}
+.slide.active { display: flex; }
+.slide.g1 { --accent: var(--g1); --accent-soft: var(--g1-soft); }
+.slide.g2 { --accent: var(--g2); --accent-soft: var(--g2-soft); }
+
+.eyebrow {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.2cqw;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  display: flex; align-items: center; gap: .8cqw;
+}
+.eyebrow::before { content: ""; width: 2.2cqw; height: .3cqw; background: var(--accent); }
+h1, h2 { font-family: var(--display); margin: 0; text-wrap: balance; line-height: 1.08; }
+h1 { font-size: 6cqw; font-weight: 700; }
+h2 { font-size: 3.4cqw; font-weight: 700; }
+p { margin: 0; max-width: 62ch; }
+code, .mono { font-family: var(--mono); font-size: .9em; background: var(--accent-soft); padding: 0 .3em; border-radius: .2em; }
+strong { font-weight: 600; }
+ul { margin: 0; padding-left: 1.2em; display: grid; gap: .7cqw; }
+li::marker { color: var(--accent); }
+
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 3.5cqw; align-items: start; }
+.cols.w60 { grid-template-columns: 1.5fr 1fr; }
+.box {
+  border-left: .35cqw solid var(--accent);
+  background: #fff;
+  padding: 1.4cqw 1.8cqw;
+  display: grid; gap: .8cqw;
+}
+.box h3 { margin: 0; font-family: var(--display); font-size: 1.6cqw; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
+.muted { color: var(--muted); }
+.small { font-size: 1.45cqw; }
+
+/* big numbers */
+.facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2cqw; }
+.fact { border-top: .3cqw solid var(--accent); padding-top: 1cqw; }
+.fact b { display: block; font-family: var(--display); font-size: 5cqw; line-height: 1; font-variant-numeric: tabular-nums; }
+.fact span { color: var(--muted); font-size: 1.5cqw; }
+
+/* tables */
+table { border-collapse: collapse; width: 100%; font-size: 1.42cqw; line-height: 1.35; }
+th, td { text-align: left; vertical-align: top; padding: .75cqw 1cqw; border-bottom: 1px solid var(--line); }
+th { font-family: var(--display); font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-size: 1.15cqw; }
+td:first-child { font-family: var(--display); font-weight: 600; white-space: nowrap; color: var(--accent); font-size: 1.6cqw; }
+.num { font-variant-numeric: tabular-nums; text-align: right; }
+
+/* title slide */
+.title { justify-content: center; gap: 2.5cqw; }
+.title .groups { display: grid; grid-template-columns: 1fr 1fr; gap: 3cqw; margin-top: 2cqw; }
+.title .grp { padding: 1.6cqw 2cqw; background: #fff; border-top: .5cqw solid; }
+.title .grp.a { border-color: var(--g1); }
+.title .grp.b { border-color: var(--g2); }
+.title .grp small { font-family: var(--display); font-weight: 600; letter-spacing: .1em; text-transform: uppercase; font-size: 1.2cqw; color: var(--muted); }
+.title .grp div { font-family: var(--display); font-weight: 700; font-size: 3cqw; }
+.title .grp.a div { color: var(--g1); }
+.title .grp.b div { color: var(--g2); }
+
+/* divider */
+.divider { justify-content: center; background: var(--accent); color: #fff; }
+.divider .eyebrow { color: #fff; }
+.divider .eyebrow::before { background: #fff; }
+.divider h1 { font-size: 7cqw; }
+.divider p { font-size: 2.2cqw; opacity: .9; }
+
+/* figures */
+figure { margin: 0; display: grid; gap: .8cqw; }
+figure svg { width: 100%; height: auto; display: block; }
+figcaption { font-size: 1.35cqw; color: var(--muted); }
+svg text { font-family: var(--body); }
+svg .svc { fill: #fff; stroke: currentColor; stroke-width: 1.5; }
+svg .svc.hl { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2.5; }
+svg .lbl { font-size: 15px; font-weight: 600; fill: currentColor; }
+svg .edge { stroke: currentColor; stroke-width: 1.6; fill: none; }
+svg .elbl { font-size: 12px; fill: var(--muted); }
+
+/* timeline */
+.timeline { display: grid; grid-template-columns: repeat(5, 1fr); align-items: stretch; position: relative; }
+.timeline::before { content: ""; position: absolute; left: 4%; right: 4%; top: 1.4cqw; height: .25cqw; background: var(--accent); }
+.step { position: relative; text-align: center; padding-top: 3.4cqw; font-size: 1.45cqw; }
+.step::before { content: ""; position: absolute; top: .7cqw; left: 50%; transform: translateX(-50%); width: 1.6cqw; height: 1.6cqw; border-radius: 50%; background: var(--paper); border: .3cqw solid var(--accent); }
+.step b { display: block; font-family: var(--display); font-size: 1.8cqw; }
+.step.end::before { background: var(--accent); }
+
+/* rounds grid */
+.rounds { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5cqw; }
+.round { background: #fff; padding: 1.2cqw; display: grid; gap: .8cqw; }
+.round h4 { margin: 0; font-family: var(--display); font-size: 1.4cqw; color: var(--accent); text-transform: uppercase; letter-spacing: .08em; }
+.match { border: 1px dashed var(--muted); padding: .6cqw; text-align: center; font-family: var(--mono); font-size: 1.3cqw; color: var(--muted); }
+
+ol.flow { margin: 0; padding: 0; list-style: none; counter-reset: f; display: grid; gap: 1.1cqw; }
+ol.flow li { counter-increment: f; display: grid; grid-template-columns: 2.8cqw 1fr; gap: 1cqw; align-items: start; }
+ol.flow li::before { content: counter(f); font-family: var(--display); font-weight: 700; font-size: 1.6cqw; color: #fff; background: var(--accent); width: 2.4cqw; height: 2.4cqw; display: grid; place-items: center; border-radius: 50%; }
+
+.check li { list-style: none; position: relative; }
+.check { padding-left: 0; }
+.check li { padding-left: 2.2cqw; }
+.check li::before { content: ""; position: absolute; left: 0; top: .35em; width: 1.2cqw; height: 1.2cqw; border: .2cqw solid var(--accent); border-radius: .2cqw; }
+
+/* timer */
+.timer { font-family: var(--display); font-weight: 700; font-size: 14cqw; line-height: 1; font-variant-numeric: tabular-nums; color: var(--ink); }
+.timer.done { color: var(--g2); }
+.btns { display: flex; gap: 1cqw; }
+button {
+  font: 600 1.5cqw var(--display); letter-spacing: .05em; text-transform: uppercase;
+  background: var(--ink); color: #fff; border: 0; padding: .8cqw 1.8cqw; cursor: pointer; border-radius: .3cqw;
+}
+button.ghost { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); }
+button:focus-visible, .nav button:focus-visible { outline: .25cqw solid var(--g2); outline-offset: .2cqw; }
+
+/* footer nav */
+.nav {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.1cqw 5.5cqw; font-size: 1.1cqw; color: var(--muted); z-index: 2;
+}
+.nav .ctrl { display: flex; align-items: center; gap: 1cqw; }
+.nav button { font-size: 1.1cqw; padding: .4cqw 1cqw; background: transparent; color: var(--muted); box-shadow: inset 0 0 0 1px var(--line); }
+.nav .count { font-variant-numeric: tabular-nums; min-width: 4.5em; text-align: center; }
+.progress { position: absolute; left: 0; bottom: 0; height: .3cqw; background: var(--ink); transition: width .2s; z-index: 3; }
+
+@media (prefers-reduced-motion: reduce) { .progress { transition: none; } }
+@media print {
+  body { display: block; overflow: visible; background: #fff; }
+  .stage { width: 100%; box-shadow: none; aspect-ratio: auto; }
+  .slide { position: relative; display: flex; aspect-ratio: 16/9; page-break-after: always; }
+  .nav, .progress { display: none; }
+}
+</style>
+</head>
+<body>
+<main class="stage" id="stage">
+
+<!-- 1 -->
+<section class="slide title">
+  <div class="eyebrow">PSSO · wykład 18 listopada 2026</div>
+  <h1>Speedkathon:<br>spotkanie planistyczne</h1>
+  <p class="muted">Pięć zespołów, pięć mikroserwisów, jedna działająca aplikacja.</p>
+  <div class="groups">
+    <div class="grp a"><small>Grupa 1</small><div>Planer wycieczek</div></div>
+    <div class="grp b"><small>Grupa 2</small><div>Organizator turnieju</div></div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="slide">
+  <div class="eyebrow">Format</div>
+  <h2>Dziś planujecie, na Speedkathonie budujecie</h2>
+  <div class="facts">
+    <div class="fact"><b>45 min</b><span>na planowanie podczas wykładu</span></div>
+    <div class="fact"><b>3 h</b><span>na implementację i pokaz</span></div>
+    <div class="fact"><b>5</b><span>zespołów, każdy odpowiada za jeden serwis</span></div>
+  </div>
+  <div class="cols">
+    <div class="box">
+      <h3>Przed Speedkathonem</h3>
+      <ul>
+        <li>Każdy zespół zakłada własne repozytorium Git.</li>
+        <li>Dodaje członków i sprawdza, czy każdy może wysłać zmianę.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>W trakcie</h3>
+      <ul>
+        <li>Własny stos technologiczny, serwis na osobnym komputerze w sieci lokalnej.</li>
+        <li>Jedno stanowisko z Codexem; można korzystać z własnych agentów.</li>
+        <li>Zadania można dzielić między osoby pracujące na osobnych gałęziach.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="slide">
+  <div class="eyebrow">Wspólne zasady dla obu grup</div>
+  <h2>Jak serwisy rozmawiają ze sobą</h2>
+  <div class="cols w60">
+    <ul>
+      <li><strong>HTTP + JSON</strong> między wszystkimi serwisami.</li>
+      <li><strong>Każdy właściciel danych</strong> sam wybiera sposób ich przechowywania. Nikt nie czyta cudzej bazy.</li>
+      <li>Zespoły przekazują sobie <strong>adresy usług, kontrakty i przykłady odpowiedzi</strong>.</li>
+      <li>Architektura jest <strong>proponowana</strong>: możecie ją doprecyzować, ale zmiany uzgadniacie z zespołami, których dotyczą.</li>
+    </ul>
+    <figure>
+      <svg viewBox="0 0 360 150" role="img" aria-label="Strzałka biegnie od klienta do dostawcy API">
+        <defs><marker id="ar0" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"></path></marker></defs>
+        <rect class="svc" x="10" y="45" width="120" height="56" rx="4"></rect>
+        <text class="lbl" x="70" y="78" text-anchor="middle">Klient</text>
+        <rect class="svc hl" x="230" y="45" width="120" height="56" rx="4"></rect>
+        <text class="lbl" x="290" y="78" text-anchor="middle">Dostawca API</text>
+        <line class="edge" x1="130" y1="73" x2="228" y2="73" marker-end="url(#ar0)"></line>
+        <text class="elbl" x="180" y="64" text-anchor="middle">żądanie HTTP</text>
+        <text class="elbl" x="180" y="92" text-anchor="middle">← odpowiedź JSON</text>
+      </svg>
+      <figcaption>Na diagramach strzałka biegnie od klienta do dostawcy API.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="slide">
+  <div class="eyebrow">Wspólne zasady dla obu grup</div>
+  <h2>Karta projektu: co musi być spisane po 45 minutach</h2>
+  <div class="cols">
+    <div class="box">
+      <h3>Dla każdego wywołania</h3>
+      <ul class="check">
+        <li>Kto jest dostawcą, a kto klientem</li>
+        <li>Przykładowe żądanie (metoda, ścieżka, parametry)</li>
+        <li>Przykładowa odpowiedź JSON</li>
+        <li>Limit oczekiwania na odpowiedź</li>
+        <li>Zachowanie przy błędzie i przy niedostępności usługi</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>Dla całego projektu</h3>
+      <ul class="check">
+        <li>Wspólne identyfikatory, jednostki i formaty</li>
+        <li>Osoby kontaktowe w każdym zespole</li>
+        <li>Kolejność integracji</li>
+        <li>Przykładowe odpowiedzi, od których klienci zaczną pracę, zanim dostawca będzie gotowy</li>
+        <li>Scenariusz pokazu z ręcznie policzonym wynikiem</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="slide divider g1">
+  <div class="eyebrow">Grupa 1</div>
+  <h1>Planer wycieczek</h1>
+  <p>Jednodniowa wycieczka po jednym mieście, 10:00–16:00.</p>
+</section>
+
+<!-- 6 -->
+<section class="slide g1">
+  <div class="eyebrow">Grupa 1 · Założenia</div>
+  <h2>Użytkownik podaje preferencje, aplikacja układa dzień</h2>
+  <div class="cols">
+    <div class="box">
+      <h3>Wejście</h3>
+      <ul>
+        <li>data</li>
+        <li>budżet</li>
+        <li>zainteresowania</li>
+        <li>wymagania żywieniowe</li>
+        <li>sposób przemieszczania się</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>Wynik</h3>
+      <ul>
+        <li>godziny wizyt</li>
+        <li>łączny koszt: atrakcje + posiłek + transport</li>
+        <li>pozostały budżet</li>
+        <li>albo informacja o braku pasującego planu</li>
+      </ul>
+    </div>
+  </div>
+  <div class="timeline" aria-label="Kolejność planu">
+    <div class="step"><b>10:00</b>start</div>
+    <div class="step"><b>Atrakcja 1</b>&nbsp;</div>
+    <div class="step"><b>Posiłek</b>&nbsp;</div>
+    <div class="step"><b>Atrakcja 2</b>inna niż pierwsza</div>
+    <div class="step end"><b>16:00</b>powrót do startu</div>
+  </div>
+</section>
+
+<!-- 7 -->
+<section class="slide g1">
+  <div class="eyebrow">Grupa 1 · Dane do pokazu</div>
+  <h2>Syntetyczne dane i dwa scenariusze pogodowe</h2>
+  <div class="cols">
+    <div class="box">
+      <h3>Przygotowujecie</h3>
+      <ul>
+        <li>kilka atrakcji i lokali</li>
+        <li>tabelę czasów i kosztów przejazdów</li>
+        <li>dwie daty z przygotowaną pogodą: pogodną i deszczową</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>Pokaz musi wykazać</h3>
+      <ul>
+        <li>Zmiana dnia pogodnego na deszczowy: plan zawiera <strong>wyłącznie atrakcje pod dachem</strong>.</li>
+        <li>Gdy żaden plan nie mieści się w budżecie lub czasie: <strong>komunikat o braku pasującego planu</strong>.</li>
+        <li>Co najmniej jeden plan zgadza się z ręcznie policzonym czasem i kosztem, łącznie z powrotem.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 8 -->
+<section class="slide g1">
+  <div class="eyebrow">Grupa 1 · Proponowana architektura</div>
+  <h2>Pięć zespołów, pięć serwisów</h2>
+  <table>
+    <thead><tr><th>Zespół</th><th>Posiada</th><th>Korzysta z</th></tr></thead>
+    <tbody>
+      <tr><td>1. Atrakcje</td><td>katalog atrakcji: kategorie, lokalizacje, ceny, czasy zwiedzania, czy pod dachem</td><td>Warunki dnia (dobór atrakcji), Transport (dotarcie od startu)</td></tr>
+      <tr><td>2. Gastronomia</td><td>lokale, posiłki, ceny, diety, czas wizyty</td><td>Transport (dotarcie od wskazanej atrakcji do lokali)</td></tr>
+      <tr><td>3. Transport</td><td>tabela odcinków między lokalizacjami; zwraca czas i koszt dla par w danym trybie</td><td class="muted">nikogo</td></tr>
+      <tr><td>4. Warunki dnia</td><td>przygotowane prognozy dla dat demonstracyjnych</td><td class="muted">nikogo</td></tr>
+      <tr><td>5. Planer i integracja</td><td>formularz i widok planu; kolejność wizyt, brakujące odcinki, kontrola budżetu i godzin; <strong>bez własnej bazy</strong>, plan na żądanie</td><td>Atrakcje, Gastronomia, Transport</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 9 -->
+<section class="slide g1">
+  <div class="eyebrow">Grupa 1 · Zależności</div>
+  <h2>Transport ma trzech klientów</h2>
+  <figure>
+    <svg viewBox="0 0 760 290" role="img" aria-label="Planer wywołuje Atrakcje, Gastronomię i Transport; Atrakcje wywołują Warunki dnia i Transport; Gastronomia wywołuje Transport">
+      <defs><marker id="ar1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"></path></marker></defs>
+      <rect class="svc" x="20" y="117" width="170" height="56" rx="4"></rect>
+      <text class="lbl" x="105" y="150" text-anchor="middle">5. Planer i integracja</text>
+      <rect class="svc" x="295" y="25" width="170" height="56" rx="4"></rect>
+      <text class="lbl" x="380" y="58" text-anchor="middle">1. Atrakcje</text>
+      <rect class="svc" x="295" y="209" width="170" height="56" rx="4"></rect>
+      <text class="lbl" x="380" y="242" text-anchor="middle">2. Gastronomia</text>
+      <rect class="svc hl" x="570" y="117" width="170" height="56" rx="4"></rect>
+      <text class="lbl" x="655" y="150" text-anchor="middle">3. Transport</text>
+      <rect class="svc" x="570" y="25" width="170" height="56" rx="4"></rect>
+      <text class="lbl" x="655" y="58" text-anchor="middle">4. Warunki dnia</text>
+
+      <line class="edge" x1="190" y1="135" x2="293" y2="70" marker-end="url(#ar1)"></line>
+      <text class="elbl" x="228" y="90" text-anchor="middle" transform="rotate(-32 228 90)">propozycje</text>
+      <line class="edge" x1="190" y1="155" x2="293" y2="220" marker-end="url(#ar1)"></line>
+      <text class="elbl" x="228" y="209" text-anchor="middle" transform="rotate(32 228 209)">posiłki</text>
+      <line class="edge" x1="190" y1="145" x2="568" y2="145" marker-end="url(#ar1)"></line>
+      <text class="elbl" x="380" y="138" text-anchor="middle">pozostałe odcinki</text>
+      <line class="edge" x1="465" y1="53" x2="568" y2="53" marker-end="url(#ar1)"></line>
+      <text class="elbl" x="517" y="45" text-anchor="middle">pogoda</text>
+      <line class="edge" x1="465" y1="72" x2="568" y2="128" marker-end="url(#ar1)"></line>
+      <text class="elbl" x="532" y="92" text-anchor="middle">od startu</text>
+      <line class="edge" x1="465" y1="218" x2="568" y2="162" marker-end="url(#ar1)"></line>
+      <text class="elbl" x="532" y="210" text-anchor="middle">od atrakcji</text>
+    </svg>
+    <figcaption>Strzałka od klienta do dostawcy. Warunki dnia i Transport nie zależą od nikogo, więc mogą jako pierwsze udostępnić przykładowe odpowiedzi.</figcaption>
+  </figure>
+</section>
+
+<!-- 10 -->
+<section class="slide g1">
+  <div class="eyebrow">Grupa 1 · Przepływ</div>
+  <h2>Jak Planer składa plan</h2>
+  <div class="cols w60">
+    <ol class="flow">
+      <li><span>Planer prosi <strong>Atrakcje</strong> o propozycje na dany dzień, z kosztem i czasem dotarcia od startu. Na tej podstawie wybiera <strong>pierwszą</strong> atrakcję.</span></li>
+      <li><span>Planer prosi <strong>Gastronomię</strong> o pasujące posiłki wraz z dojazdem od pierwszej atrakcji.</span></li>
+      <li><span>Planer sam pobiera z <strong>Transportu</strong> pozostałe odcinki: lokal → druga atrakcja → start.</span></li>
+      <li><span>Planer sprawdza budżet i godziny 10:00–16:00.</span></li>
+    </ol>
+    <div class="box">
+      <h3>Jedna operacja Transportu</h3>
+      <p class="small">Wszyscy trzej klienci mogą używać tej samej operacji HTTP.</p>
+      <p class="small"><strong>Żądanie:</strong> lista par <code>fromLocationId</code>–<code>toLocationId</code> i tryb przemieszczania się.</p>
+      <p class="small"><strong>Odpowiedź:</strong> dla każdej pary czas i koszt <em>albo</em> informacja o braku połączenia.</p>
+      <p class="small muted">Atrakcja daleko od startu może pasować na drugą wizytę, jeśli leży blisko restauracji.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 11 -->
+<section class="slide g1">
+  <div class="eyebrow">Grupa 1 · Co ustalić dziś</div>
+  <h2>Do karty projektu</h2>
+  <ul class="check">
+    <li>Miasto i punkt startowy. Wspólne <code>locationId</code>, ceny <strong>w groszach</strong>, czasy <strong>w minutach</strong>, data w formacie <code>YYYY-MM-DD</code>.</li>
+    <li>Dla każdego wywołania: dostawca i klient, przykładowe żądanie, odpowiedź JSON, limit oczekiwania, zachowanie przy niedostępności usługi.</li>
+    <li>Rozróżnienie: <strong>brak połączenia</strong> między punktami to coś innego niż <strong>awaria Transportu</strong>.</li>
+    <li>Scenariusz pogodny i deszczowy. Ręcznie policzony całkowity czas i koszt co najmniej jednego planu, łącznie z powrotem.</li>
+    <li>Osoby kontaktowe i kolejność integracji. Transport i Warunki dnia jako pierwsze udostępniają przykładowe odpowiedzi.</li>
+  </ul>
+</section>
+
+<!-- 12 -->
+<section class="slide divider g2">
+  <div class="eyebrow">Grupa 2</div>
+  <h1>Organizator turnieju</h1>
+  <p>Cztery drużyny, każdy z każdym, tabela liczona na żądanie.</p>
+</section>
+
+<!-- 13 -->
+<section class="slide g2">
+  <div class="eyebrow">Grupa 2 · Założenia</div>
+  <h2>Organizator prowadzi turniej od rejestracji do tabeli</h2>
+  <div class="cols">
+    <div class="box">
+      <h3>Organizator</h3>
+      <ul>
+        <li>rejestruje drużyny</li>
+        <li>generuje terminarz (skład ustala się w tym momencie)</li>
+        <li>wpisuje i poprawia wyniki</li>
+        <li>ogląda aktualną tabelę</li>
+      </ul>
+    </div>
+    <div>
+      <p class="small" style="margin-bottom:1cqw">4 drużyny, każda para gra raz: <strong>6 meczów w 3 kolejkach po 2</strong>. Każda drużyna gra raz w kolejce.</p>
+      <div class="rounds">
+        <div class="round"><h4>Kolejka 1</h4><div class="match">? – ?</div><div class="match">? – ?</div></div>
+        <div class="round"><h4>Kolejka 2</h4><div class="match">? – ?</div><div class="match">? – ?</div></div>
+        <div class="round"><h4>Kolejka 3</h4><div class="match">? – ?</div><div class="match">? – ?</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 14 -->
+<section class="slide g2">
+  <div class="eyebrow">Grupa 2 · Tabela</div>
+  <h2>Reguły klasyfikacji</h2>
+  <div class="cols">
+    <div class="box">
+      <h3>Kolumny</h3>
+      <p>mecze · zwycięstwa · remisy · porażki · bramki zdobyte · bramki stracone · punkty</p>
+      <p class="small muted">Tabela obejmuje także drużyny bez rozegranego meczu.</p>
+      <h3>Punkty</h3>
+      <p>zwycięstwo <strong>3</strong> · remis <strong>1</strong> · porażka <strong>0</strong></p>
+    </div>
+    <div class="box">
+      <h3>Przy równej liczbie punktów</h3>
+      <ol class="flow">
+        <li><span>różnica bramek</span></li>
+        <li><span>bramki zdobyte</span></li>
+        <li><span><code>teamId</code></span></li>
+      </ol>
+      <h3>Uwaga</h3>
+      <p>Brak wyniku = mecz <strong>nierozegrany</strong>.<br>Zapisane <code>0:0</code> = <strong>remis</strong>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 15 -->
+<section class="slide g2 active">
+  <div class="eyebrow">Grupa 2 · Proponowana architektura</div>
+  <h2>Pięć zespołów, pięć serwisów</h2>
+  <table>
+    <thead><tr><th>Zespół</th><th>Odpowiedzialność</th><th>Dane</th></tr></thead>
+    <tbody>
+      <tr><td>1. Drużyny</td><td>nadaje <code>teamId</code>, zapisuje nazwy, udostępnia listę zarejestrowanych drużyn</td><td>własny magazyn</td></tr>
+      <tr><td>2. Terminarz</td><td>przy tworzeniu pobiera skład z Drużyn; nadaje <code>matchId</code>; zapisuje skład i mecze (kolejka, dwa <code>teamId</code>)</td><td>własny magazyn</td></tr>
+      <tr><td>3. Wyniki</td><td>przed zapisem sprawdza mecz w Terminarzu; jeden wynik na <code>matchId</code> (bramki gospodarzy i gości); ponowny zapis koryguje wynik</td><td>własny magazyn</td></tr>
+      <tr><td>4. Klasyfikacja</td><td>pobiera skład i mecze z Terminarza oraz wyniki z Wyników; przelicza tabelę na żądanie</td><td class="muted">bez bazy</td></tr>
+      <tr><td>5. Panel turnieju</td><td>operacje organizatora i widok klasyfikacji; nazwy drużyn pobiera z Drużyn</td><td class="muted">bez bazy</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 16 -->
+<section class="slide g2">
+  <div class="eyebrow">Grupa 2 · Zależności</div>
+  <h2>Panel rozmawia ze wszystkimi, Terminarz jest w centrum</h2>
+  <figure>
+    <svg viewBox="0 0 830 320" role="img" aria-label="Panel wywołuje wszystkie cztery serwisy; Terminarz wywołuje Drużyny; Wyniki wywołują Terminarz; Klasyfikacja wywołuje Terminarz i Wyniki">
+      <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"></path></marker></defs>
+      <rect class="svc" x="330" y="15" width="170" height="56" rx="4"></rect>
+      <text class="lbl" x="415" y="48" text-anchor="middle">5. Panel turnieju</text>
+
+      <rect class="svc" x="20" y="185" width="160" height="56" rx="4"></rect>
+      <text class="lbl" x="100" y="218" text-anchor="middle">1. Drużyny</text>
+      <rect class="svc hl" x="235" y="185" width="160" height="56" rx="4"></rect>
+      <text class="lbl" x="315" y="218" text-anchor="middle">2. Terminarz</text>
+      <rect class="svc" x="450" y="185" width="160" height="56" rx="4"></rect>
+      <text class="lbl" x="530" y="218" text-anchor="middle">3. Wyniki</text>
+      <rect class="svc" x="665" y="185" width="160" height="56" rx="4"></rect>
+      <text class="lbl" x="745" y="218" text-anchor="middle">4. Klasyfikacja</text>
+
+      <line class="edge" x1="370" y1="71" x2="102" y2="183" marker-end="url(#ar2)"></line>
+      <text class="elbl" x="196" y="118" text-anchor="middle">nazwy</text>
+      <line class="edge" x1="400" y1="71" x2="318" y2="183" marker-end="url(#ar2)"></line>
+      <text class="elbl" x="338" y="128" text-anchor="end">terminarz</text>
+      <line class="edge" x1="430" y1="71" x2="527" y2="183" marker-end="url(#ar2)"></line>
+      <text class="elbl" x="494" y="128" text-anchor="start">wynik</text>
+      <line class="edge" x1="460" y1="71" x2="742" y2="183" marker-end="url(#ar2)"></line>
+      <text class="elbl" x="636" y="118" text-anchor="middle">tabela</text>
+
+      <line class="edge" x1="235" y1="213" x2="182" y2="213" marker-end="url(#ar2)"></line>
+      <text class="elbl" x="207" y="262" text-anchor="middle">skład</text>
+      <line class="edge" x1="450" y1="213" x2="397" y2="213" marker-end="url(#ar2)"></line>
+      <text class="elbl" x="422" y="262" text-anchor="middle">mecz?</text>
+      <line class="edge" x1="665" y1="213" x2="612" y2="213" marker-end="url(#ar2)"></line>
+      <text class="elbl" x="637" y="262" text-anchor="middle">wyniki</text>
+      <path class="edge" d="M745 241 C745 312, 315 312, 315 245" marker-end="url(#ar2)"></path>
+      <text class="elbl" x="530" y="306" text-anchor="middle">skład i mecze</text>
+    </svg>
+    <figcaption>Strzałka od klienta do dostawcy. Pierwszy wspólny przebieg może zacząć się od połączenia Terminarza z Drużynami.</figcaption>
+  </figure>
+</section>
+
+<!-- 17 -->
+<section class="slide g2">
+  <div class="eyebrow">Grupa 2 · Przepływ</div>
+  <h2>Wpis wyniku i odczyt tabeli</h2>
+  <div class="cols">
+    <div class="box">
+      <h3>Zapis wyniku</h3>
+      <ol class="flow">
+        <li><span>Panel wysyła <code>matchId</code> i liczbę bramek do <strong>Wyników</strong>.</span></li>
+        <li><span>Wyniki pytają <strong>Terminarz</strong>, czy mecz istnieje.</span></li>
+        <li><span>Wyniki zapisują lub korygują wynik.</span></li>
+      </ol>
+    </div>
+    <div class="box">
+      <h3>Odczyt tabeli</h3>
+      <ol class="flow">
+        <li><span><strong>Klasyfikacja</strong> pobiera skład i mecze z Terminarza oraz wyniki z Wyników.</span></li>
+        <li><span>Łączy je po <code>matchId</code> i liczy statystyki drużyn.</span></li>
+        <li><span>Po korekcie wyniku ten sam odczyt uwzględnia nową wartość.</span></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- 18 -->
+<section class="slide g2">
+  <div class="eyebrow">Grupa 2 · Co ustalić dziś</div>
+  <h2>Do karty projektu</h2>
+  <div class="cols w60">
+    <ul class="check">
+      <li>Kształt danych o drużynie, meczu i wyniku. Drużyny nadają <code>teamId</code>, Terminarz nadaje <code>matchId</code>, gole to nieujemne liczby całkowite.</li>
+      <li>Dla każdego wywołania: dostawca i klient, przykładowe żądanie, odpowiedź JSON, limit oczekiwania, zachowanie przy błędzie.</li>
+      <li>Przypadki brzegowe: nieznany mecz, niedostępna zależna usługa, pusta lista wyników przed pierwszym spotkaniem.</li>
+      <li>Kolejki i identyfikatory do pokazu; plan pokazu korekty jednego wyniku.</li>
+      <li>Osoby kontaktowe i kolejność integracji. Przykładowe drużyny, mecze i wyniki pozwolą Panelowi i Klasyfikacji zacząć od razu.</li>
+    </ul>
+    <div class="box">
+      <h3>Scenariusz kontrolny</h3>
+      <table>
+        <thead><tr><th>Mecz</th><th class="num">Wynik</th></tr></thead>
+        <tbody>
+          <tr><td>A – B</td><td class="num">2:1</td></tr>
+          <tr><td>A – C</td><td class="num">0:0</td></tr>
+          <tr><td>B – D</td><td class="num">3:0</td></tr>
+        </tbody>
+      </table>
+      <p class="small muted">Pozostałe trzy mecze nierozegrane.</p>
+      <p><strong>Oczekiwane punkty:</strong><br><span class="mono">A 4 · B 3 · C 1 · D 0</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- 19 -->
+<section class="slide">
+  <div class="eyebrow">Planowanie</div>
+  <h2>Macie 45 minut</h2>
+  <div class="timer" id="timer" aria-live="polite">45:00</div>
+  <div class="btns">
+    <button type="button" id="tStart">Start</button>
+    <button type="button" class="ghost" id="tReset">Od nowa</button>
+  </div>
+  <p class="muted">Na koniec każdy zespół ma w karcie projektu swoje kontrakty, osobę kontaktową i miejsce w kolejności integracji.</p>
+</section>
+
+<nav class="nav" aria-label="Nawigacja slajdów">
+  <span>Speedkathon PSSO · 18.11.2026</span>
+  <span class="ctrl">
+    <button type="button" id="prev" aria-label="Poprzedni slajd">←</button>
+    <span class="count" id="count">15 / 19</span>
+    <button type="button" id="next" aria-label="Następny slajd">→</button>
+  </span>
+</nav>
+<div class="progress" id="progress" style="width: 78.9474%;"></div>
+</main>
+
+<script>
+(function () {
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const count = document.getElementById('count');
+  const progress = document.getElementById('progress');
+  let i = 0;
+
+  function fromHash() {
+    const m = /^#slajd-(\d+)$/.exec(location.hash);
+    const n = m ? parseInt(m[1], 10) - 1 : 0;
+    return Math.min(Math.max(n, 0), slides.length - 1);
+  }
+  function show(n, push) {
+    i = Math.min(Math.max(n, 0), slides.length - 1);
+    slides.forEach((s, k) => s.classList.toggle('active', k === i));
+    count.textContent = (i + 1) + ' / ' + slides.length;
+    progress.style.width = ((i + 1) / slides.length * 100) + '%';
+    if (push) { try { history.replaceState(null, '', '#slajd-' + (i + 1)); } catch (e) { location.hash = 'slajd-' + (i + 1); } }
+  }
+  document.getElementById('prev').addEventListener('click', () => show(i - 1, true));
+  document.getElementById('next').addEventListener('click', () => show(i + 1, true));
+  document.addEventListener('keydown', (e) => {
+    if (e.target.closest && e.target.closest('button') && (e.key === ' ' || e.key === 'Enter')) return;
+    if (['ArrowRight', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); show(i + 1, true); }
+    else if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); show(i - 1, true); }
+    else if (e.key === 'Home') show(0, true);
+    else if (e.key === 'End') show(slides.length - 1, true);
+  });
+  window.addEventListener('hashchange', () => show(fromHash(), false));
+  show(fromHash(), false);
+
+  // 45-minute timer
+  const tEl = document.getElementById('timer');
+  const startBtn = document.getElementById('tStart');
+  const TOTAL = 45 * 60;
+  let left = TOTAL, handle = null, endAt = 0;
+  function render() {
+    const m = Math.floor(left / 60), s = left % 60;
+    tEl.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    tEl.classList.toggle('done', left === 0);
+  }
+  function tick() {
+    left = Math.max(0, Math.round((endAt - Date.now()) / 1000));
+    render();
+    if (left === 0) { clearInterval(handle); handle = null; startBtn.textContent = 'Start'; }
+  }
+  startBtn.addEventListener('click', () => {
+    if (handle) { clearInterval(handle); handle = null; startBtn.textContent = 'Wznów'; return; }
+    if (left === 0) left = TOTAL;
+    endAt = Date.now() + left * 1000;
+    handle = setInterval(tick, 250);
+    startBtn.textContent = 'Pauza';
+  });
+  document.getElementById('tReset').addEventListener('click', () => {
+    clearInterval(handle); handle = null; left = TOTAL; render(); startBtn.textContent = 'Start';
+  });
+})();
+</script>
+
+
+</body></html>
