@@ -62,6 +62,8 @@ Po starcie:
 - Dokumentacja Swagger UI: `http://<TWOJE_IP>:8000/docs`
 - Healthcheck: `http://<TWOJE_IP>:8000/health`
 
+> **Tryb tymczasowy przed merge'em gałęzi DB i Transport:** jeśli `feat/db-and-seed` lub `feat/transport-client` nie są jeszcze scalone, serwis automatycznie startuje na wbudowanych 4 lokalach (`rest-01`–`rest-04`) i tabeli tras z `docs/KONTRAKT_API.md`, więc można go od razu wystawić w sieci LAN dla Planera. Po scaleniu tych gałęzi aplikacja automatycznie przełącza się na SQLite i `RouteService`.
+
 ## Testy
 
 ```bash

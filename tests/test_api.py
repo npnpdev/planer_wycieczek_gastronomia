@@ -3,6 +3,7 @@ import pytest
 
 from app.api.routes import get_repository, get_route_service
 from app.config import Settings, get_settings
+from app.db.repository import GastronomyRepository
 from app.exceptions import TransportUnavailableError
 from app.main import create_app
 from app.schemas import (
@@ -13,6 +14,7 @@ from app.schemas import (
     TransportMode,
     TransportRoute,
 )
+from app.services.route_service import RouteService
 
 
 def _sample_places() -> list[Place]:
@@ -444,3 +446,87 @@ def test_lifespan_initializes_and_seeds_database(
         assert called_seed == ["test_lifespan.db"]
     finally:
         get_settings.cache_clear()
+
+
+def test_lifespan_handles_not_implemented_storage_gracefully(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def _raise_not_implemented(_: object) -> None:
+        raise NotImplementedError("stub")
+
+    monkeypatch.setattr("app.main.init_db", _raise_not_implemented)
+
+    with TestClient(create_app(init_storage=True)) as client:
+        response = client.get("/health")
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "ok"
+
+
+def test_in_memory_fallback_places_and_routes_work_end_to_end(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def _raise_sync(*args: object, **kwargs: object) -> None:
+        raise NotImplementedError("stub")
+
+    async def _raise_async(*args: object, **kwargs: object) -> None:
+        raise NotImplementedError("stub")
+
+    monkeypatch.setattr("app.main.init_db", _raise_sync)
+    monkeypatch.setattr(GastronomyRepository, "get_all_places", _raise_sync)
+    monkeypatch.setattr(GastronomyRepository, "get_place_by_id", _raise_sync)
+    monkeypatch.setattr(GastronomyRepository, "find_places_with_meals", _raise_sync)
+    monkeypatch.setattr(RouteService, "get_routes_from_attraction", _raise_async)
+
+    with TestClient(create_app(init_storage=True)) as client:
+        places_resp = client.get("/api/gastronomy/places")
+        assert places_resp.status_code == 200
+        places = places_resp.json()
+        assert [p["id"] for p in places] == ["rest-01", "rest-02", "rest-03", "rest-04"]
+
+        place_resp = client.get("/api/gastronomy/places/rest-01")
+        assert place_resp.status_code == 200
+        assert place_resp.json()["name"] == "Bar Mleczny Śródmieście"
+
+        missing_resp = client.get("/api/gastronomy/places/missing")
+        assert missing_resp.status_code == 404
+
+        walk_resp = client.get(
+            "/api/gastronomy/proposals",
+            params={"fromLocationId": "start", "transportMode": "WALK"},
+        )
+        assert walk_resp.status_code == 200
+        walk_proposals = walk_resp.json()["proposals"]
+        assert all(item["placeId"] != "rest-04" for item in walk_proposals)
+        assert walk_proposals[0]["mealId"] == "meal-rest-01-b"
+        assert walk_proposals[0]["totalPriceGroszy"] == 1800
+        assert walk_proposals[0]["totalDurationMinutes"] == 39
+
+        car_vegan_resp = client.get(
+            "/api/gastronomy/proposals",
+            params={"fromLocationId": "start", "transportMode": "CAR", "diet": "VEGAN"},
+        )
+        assert car_vegan_resp.status_code == 200
+        car_vegan_by_meal = {
+            item["mealId"]: item for item in car_vegan_resp.json()["proposals"]
+        }
+        assert "meal-rest-04-b" in car_vegan_by_meal
+        assert car_vegan_by_meal["meal-rest-04-b"]["totalPriceGroszy"] == 6645
+        assert car_vegan_by_meal["meal-rest-04-b"]["totalDurationMinutes"] == 67
+
+        from_attr_resp = client.get(
+            "/api/gastronomy/proposals",
+            params={
+                "fromLocationId": "attr-01",
+                "transportMode": "PUBLIC_TRANSPORT",
+            },
+        )
+        assert from_attr_resp.status_code == 200
+        rest01_items = [
+            item
+            for item in from_attr_resp.json()["proposals"]
+            if item["placeId"] == "rest-01"
+        ]
+        assert rest01_items
+        assert rest01_items[0]["travelDurationMinutes"] == 17
+        assert rest01_items[0]["travelPriceGroszy"] == 960

@@ -1,5 +1,6 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+import logging
 
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
@@ -17,6 +18,8 @@ from app.exceptions import (
 )
 from app.schemas import ErrorResponse
 
+logger = logging.getLogger(__name__)
+
 
 def create_app(*, init_storage: bool = True) -> FastAPI:
     """Tworzy i konfiguruje aplikację FastAPI serwisu Gastronomia."""
@@ -26,8 +29,13 @@ def create_app(*, init_storage: bool = True) -> FastAPI:
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         if init_storage:
             current_settings = get_settings()
-            init_db(current_settings.db_path)
-            seed_database(current_settings.db_path)
+            try:
+                init_db(current_settings.db_path)
+                seed_database(current_settings.db_path)
+            except NotImplementedError:
+                logger.warning(
+                    "SQLite storage is not implemented yet; running with in-memory fallback places."
+                )
         yield
 
     application = FastAPI(

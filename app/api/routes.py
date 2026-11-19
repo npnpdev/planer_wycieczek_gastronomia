@@ -11,6 +11,7 @@ from app.schemas import (
     Coordinates,
     DietType,
     HealthResponse,
+    Meal,
     MealProposal,
     Place,
     ProposalsResponse,
@@ -23,10 +24,377 @@ T = TypeVar("T")
 
 router = APIRouter()
 
+_FALLBACK_LEGS_FROM_START: dict[str, dict[TransportMode, tuple[int, int] | None]] = {
+    "attr-01": {
+        TransportMode.WALK: (15, 0),
+        TransportMode.PUBLIC_TRANSPORT: (9, 480),
+        TransportMode.CAR: (6, 1320),
+    },
+    "attr-02": {
+        TransportMode.WALK: (21, 0),
+        TransportMode.PUBLIC_TRANSPORT: (11, 480),
+        TransportMode.CAR: (7, 1495),
+    },
+    "attr-03": {
+        TransportMode.WALK: (28, 0),
+        TransportMode.PUBLIC_TRANSPORT: (12, 480),
+        TransportMode.CAR: (8, 1705),
+    },
+    "attr-04": {
+        TransportMode.WALK: (29, 0),
+        TransportMode.PUBLIC_TRANSPORT: (13, 480),
+        TransportMode.CAR: (8, 1740),
+    },
+    "attr-05": {
+        TransportMode.WALK: None,
+        TransportMode.PUBLIC_TRANSPORT: (17, 480),
+        TransportMode.CAR: (11, 2230),
+    },
+    "attr-06": {
+        TransportMode.WALK: None,
+        TransportMode.PUBLIC_TRANSPORT: (28, 480),
+        TransportMode.CAR: (19, 3560),
+    },
+    "rest-01": {
+        TransportMode.WALK: (9, 0),
+        TransportMode.PUBLIC_TRANSPORT: (8, 480),
+        TransportMode.CAR: (5, 1145),
+    },
+    "rest-02": {
+        TransportMode.WALK: (22, 0),
+        TransportMode.PUBLIC_TRANSPORT: (11, 480),
+        TransportMode.CAR: (7, 1530),
+    },
+    "rest-03": {
+        TransportMode.WALK: (34, 0),
+        TransportMode.PUBLIC_TRANSPORT: (14, 480),
+        TransportMode.CAR: (9, 1880),
+    },
+    "rest-04": {
+        TransportMode.WALK: None,
+        TransportMode.PUBLIC_TRANSPORT: (26, 480),
+        TransportMode.CAR: (17, 3245),
+    },
+}
 
-def get_repository(settings: Settings = Depends(get_settings)) -> GastronomyRepository:
-    """Dostarcza instancję repozytorium SQLite skonfigurowaną ścieżką z ustawień."""
-    return GastronomyRepository(settings.db_path)
+
+def _build_fallback_places() -> list[Place]:
+    """Zwraca wbudowane lokale startowe zgodne z ID z docs/KONTRAKT_API.md."""
+    return [
+        Place(
+            id="rest-01",
+            name="Bar Mleczny Śródmieście",
+            location_id="rest-01",
+            city="Warszawa",
+            address="ul. Marszałkowska 84",
+            coordinates=Coordinates(lat=52.2281, lng=21.0122),
+            visit_duration_minutes=30,
+            meals=[
+                Meal(
+                    id="meal-rest-01-a",
+                    place_id="rest-01",
+                    name="Pierogi ruskie",
+                    price_groszy=2200,
+                    diets=[DietType.STANDARD, DietType.VEGETARIAN],
+                ),
+                Meal(
+                    id="meal-rest-01-b",
+                    place_id="rest-01",
+                    name="Krem z dyni z pestkami",
+                    price_groszy=1800,
+                    diets=[
+                        DietType.STANDARD,
+                        DietType.VEGETARIAN,
+                        DietType.VEGAN,
+                        DietType.GLUTEN_FREE,
+                    ],
+                ),
+            ],
+        ),
+        Place(
+            id="rest-02",
+            name="Bistro Zielone",
+            location_id="rest-02",
+            city="Warszawa",
+            address="ul. Mokotowska 17",
+            coordinates=Coordinates(lat=52.2245, lng=21.0211),
+            visit_duration_minutes=45,
+            meals=[
+                Meal(
+                    id="meal-rest-02-a",
+                    place_id="rest-02",
+                    name="Bowl z falafelem i hummusem",
+                    price_groszy=3200,
+                    diets=[DietType.STANDARD, DietType.VEGETARIAN, DietType.VEGAN],
+                ),
+                Meal(
+                    id="meal-rest-02-b",
+                    place_id="rest-02",
+                    name="Kurczak grillowany z kaszą gryczaną",
+                    price_groszy=3600,
+                    diets=[DietType.STANDARD, DietType.GLUTEN_FREE],
+                ),
+            ],
+        ),
+        Place(
+            id="rest-03",
+            name="Pierogarnia Stare Miasto",
+            location_id="rest-03",
+            city="Warszawa",
+            address="ul. Świętojańska 11",
+            coordinates=Coordinates(lat=52.2485, lng=21.0135),
+            visit_duration_minutes=40,
+            meals=[
+                Meal(
+                    id="meal-rest-03-a",
+                    place_id="rest-03",
+                    name="Żurek staropolski z jajkiem",
+                    price_groszy=2600,
+                    diets=[DietType.STANDARD],
+                ),
+                Meal(
+                    id="meal-rest-03-b",
+                    place_id="rest-03",
+                    name="Sałatka z pieczonym burakiem i kozim serem",
+                    price_groszy=2900,
+                    diets=[
+                        DietType.STANDARD,
+                        DietType.VEGETARIAN,
+                        DietType.GLUTEN_FREE,
+                    ],
+                ),
+            ],
+        ),
+        Place(
+            id="rest-04",
+            name="Karczma Nad Wisłą",
+            location_id="rest-04",
+            city="Warszawa",
+            address="Wybrzeże Kościuszkowskie 25",
+            coordinates=Coordinates(lat=52.2410, lng=21.0315),
+            visit_duration_minutes=50,
+            meals=[
+                Meal(
+                    id="meal-rest-04-a",
+                    place_id="rest-04",
+                    name="Schabowy z ziemniakami i kapustą",
+                    price_groszy=4200,
+                    diets=[DietType.STANDARD],
+                ),
+                Meal(
+                    id="meal-rest-04-b",
+                    place_id="rest-04",
+                    name="Leczo warzywne z tofu",
+                    price_groszy=3400,
+                    diets=[
+                        DietType.STANDARD,
+                        DietType.VEGETARIAN,
+                        DietType.VEGAN,
+                        DietType.GLUTEN_FREE,
+                    ],
+                ),
+            ],
+        ),
+    ]
+
+
+def _resolve_fallback_leg(
+    location_id: str,
+    transport_mode: TransportMode,
+) -> tuple[int, int] | None:
+    """Zwraca parę (czas_min, koszt_gr) z punktu startowego dla trybu transportu."""
+    if transport_mode == TransportMode.BIKE:
+        walk_leg = _resolve_fallback_leg(location_id, TransportMode.WALK)
+        if walk_leg is None:
+            return None
+        return (max(1, walk_leg[0] // 3), 0)
+
+    lookup_mode = (
+        TransportMode.CAR if transport_mode == TransportMode.TAXI else transport_mode
+    )
+    if location_id in _FALLBACK_LEGS_FROM_START:
+        return _FALLBACK_LEGS_FROM_START[location_id].get(lookup_mode)
+    return (20, 0) if lookup_mode == TransportMode.WALK else (15, 480)
+
+
+def _build_fallback_routes(
+    from_location_id: str,
+    places: list[Place],
+    transport_mode: TransportMode,
+) -> dict[str, TransportRoute]:
+    """Wylicza deterministyczne trasy na podstawie tabeli z docs/KONTRAKT_API.md."""
+    routes: dict[str, TransportRoute] = {}
+    for place in places:
+        to_location_id = place.location_id
+        if from_location_id == to_location_id:
+            routes[to_location_id] = TransportRoute(
+                from_location_id=from_location_id,
+                to_location_id=to_location_id,
+                transport_mode=transport_mode,
+                available=True,
+                distance_meters=0,
+                duration_minutes=0,
+                price_groszy=0,
+                from_cache=False,
+            )
+            continue
+
+        to_leg = _resolve_fallback_leg(to_location_id, transport_mode)
+        if from_location_id == "start" or from_location_id not in _FALLBACK_LEGS_FROM_START:
+            resolved_leg = to_leg
+        else:
+            from_leg = _resolve_fallback_leg(from_location_id, transport_mode)
+            if from_leg is None or to_leg is None:
+                resolved_leg = None
+            else:
+                resolved_leg = (from_leg[0] + to_leg[0], from_leg[1] + to_leg[1])
+
+        if resolved_leg is None:
+            routes[to_location_id] = TransportRoute(
+                from_location_id=from_location_id,
+                to_location_id=to_location_id,
+                transport_mode=transport_mode,
+                available=False,
+                distance_meters=None,
+                duration_minutes=None,
+                price_groszy=None,
+                from_cache=False,
+            )
+        else:
+            routes[to_location_id] = TransportRoute(
+                from_location_id=from_location_id,
+                to_location_id=to_location_id,
+                transport_mode=transport_mode,
+                available=True,
+                distance_meters=None,
+                duration_minutes=resolved_leg[0],
+                price_groszy=resolved_leg[1],
+                from_cache=False,
+            )
+
+    return routes
+
+
+class _FallbackRepositoryWrapper:
+    """Wrapper delegujący do SQLite i przełączający na mock w pamięci przed merge'em Agenta 1."""
+
+    def __init__(self, primary: GastronomyRepository) -> None:
+        self._primary = primary
+        self._fallback_places = _build_fallback_places()
+        self._route_cache: dict[tuple[str, str, TransportMode], TransportRoute] = {}
+
+    def get_all_places(self) -> list[Place]:
+        try:
+            return self._primary.get_all_places()
+        except NotImplementedError:
+            return [place.model_copy(deep=True) for place in self._fallback_places]
+
+    def get_place_by_id(self, place_id: str) -> Place | None:
+        try:
+            return self._primary.get_place_by_id(place_id)
+        except NotImplementedError:
+            for place in self._fallback_places:
+                if place.id == place_id:
+                    return place.model_copy(deep=True)
+            return None
+
+    def find_places_with_meals(
+        self,
+        diet: DietType | None = None,
+        max_meal_price_groszy: int | None = None,
+    ) -> list[Place]:
+        try:
+            return self._primary.find_places_with_meals(
+                diet=diet,
+                max_meal_price_groszy=max_meal_price_groszy,
+            )
+        except NotImplementedError:
+            matched: list[Place] = []
+            for place in self._fallback_places:
+                meals = [
+                    meal
+                    for meal in place.meals
+                    if (diet is None or diet in meal.diets)
+                    and (
+                        max_meal_price_groszy is None
+                        or meal.price_groszy <= max_meal_price_groszy
+                    )
+                ]
+                if meals:
+                    matched.append(place.model_copy(update={"meals": meals}, deep=True))
+            return matched
+
+    def get_cached_route(
+        self,
+        from_location_id: str,
+        to_location_id: str,
+        transport_mode: TransportMode,
+    ) -> TransportRoute | None:
+        try:
+            return self._primary.get_cached_route(
+                from_location_id, to_location_id, transport_mode
+            )
+        except NotImplementedError:
+            return self._route_cache.get((from_location_id, to_location_id, transport_mode))
+
+    def get_cached_routes(
+        self,
+        from_location_id: str,
+        to_location_ids: list[str],
+        transport_mode: TransportMode,
+    ) -> dict[str, TransportRoute]:
+        try:
+            return self._primary.get_cached_routes(
+                from_location_id, to_location_ids, transport_mode
+            )
+        except NotImplementedError:
+            result: dict[str, TransportRoute] = {}
+            for to_location_id in to_location_ids:
+                route = self._route_cache.get(
+                    (from_location_id, to_location_id, transport_mode)
+                )
+                if route is not None:
+                    result[to_location_id] = route
+            return result
+
+    def upsert_cached_routes(self, routes: list[TransportRoute]) -> None:
+        try:
+            self._primary.upsert_cached_routes(routes)
+        except NotImplementedError:
+            for route in routes:
+                key = (route.from_location_id, route.to_location_id, route.transport_mode)
+                self._route_cache[key] = route
+
+
+class _FallbackRouteServiceWrapper:
+    """Wrapper delegujący do RouteService i korzystający z tabeli awaryjnej przed merge'em Agenta 2."""
+
+    def __init__(self, primary: RouteService) -> None:
+        self._primary = primary
+
+    async def get_routes_from_attraction(
+        self,
+        from_location_id: str,
+        places: list[Place],
+        transport_mode: TransportMode,
+        from_coordinates: Coordinates | None = None,
+    ) -> dict[str, TransportRoute]:
+        try:
+            return await self._primary.get_routes_from_attraction(
+                from_location_id=from_location_id,
+                places=places,
+                transport_mode=transport_mode,
+                from_coordinates=from_coordinates,
+            )
+        except NotImplementedError:
+            return _build_fallback_routes(from_location_id, places, transport_mode)
+
+
+def get_repository(
+    settings: Settings = Depends(get_settings),
+) -> GastronomyRepository | _FallbackRepositoryWrapper:
+    """Dostarcza instancję repozytorium SQLite z bezpiecznym fallbackiem w pamięci."""
+    return _FallbackRepositoryWrapper(GastronomyRepository(settings.db_path))
 
 
 def get_transport_client(settings: Settings = Depends(get_settings)) -> TransportClient:
@@ -42,15 +410,16 @@ def get_transport_client(settings: Settings = Depends(get_settings)) -> Transpor
 
 def get_route_service(
     settings: Settings = Depends(get_settings),
-    repository: GastronomyRepository = Depends(get_repository),
+    repository: GastronomyRepository | _FallbackRepositoryWrapper = Depends(get_repository),
     client: TransportClient = Depends(get_transport_client),
-) -> RouteService:
-    """Dostarcza serwis wyznaczania tras z obsługą cache i fallbacku."""
-    return RouteService(
+) -> RouteService | _FallbackRouteServiceWrapper:
+    """Dostarcza serwis wyznaczania tras z obsługą cache, fallbacku i trybu tymczasowego."""
+    primary = RouteService(
         client=client,
         repository=repository,
         use_cache_fallback=settings.use_cache_fallback_on_transport_error,
     )
+    return _FallbackRouteServiceWrapper(primary)
 
 
 def _resolve_alias(
